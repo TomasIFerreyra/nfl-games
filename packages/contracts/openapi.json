@@ -1,0 +1,826 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "NFL Daily Mini-Games API",
+    "description": "High-performance backend API for NFL Daily Mini-Games Platform",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health Check",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Health Check Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/puzzles/{game_type}/daily": {
+      "get": {
+        "tags": [
+          "Puzzles"
+        ],
+        "summary": "Fetch sanitized daily puzzle configuration",
+        "description": "Returns the daily puzzle instance for the requested game mode.\nSanitizes responses so solutions/answers are strictly omitted from client payloads.",
+        "operationId": "get_daily_puzzle_api_v1_puzzles__game_type__daily_get",
+        "parameters": [
+          {
+            "name": "game_type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Game Type"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyPuzzleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/grid/validate": {
+      "post": {
+        "tags": [
+          "3x3 Grid"
+        ],
+        "summary": "Validate 3x3 Grid cell guess and compute Bayesian rarity",
+        "operationId": "validate_grid_guess_api_v1_grid_validate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GridValidateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GridValidateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/players/search-index": {
+      "get": {
+        "tags": [
+          "Players"
+        ],
+        "summary": "Download lightweight compressed player search catalog",
+        "description": "Returns the complete searchable directory of NFL players in a compact row-oriented format.\nFields: [id, full_name, primary_position, rookie_year, final_year, is_active]\nTransfer size: ~320 KB gzipped.",
+        "operationId": "get_player_search_index_api_v1_players_search_index_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchIndexResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/validate-group": {
+      "post": {
+        "tags": [
+          "Connections 4x4"
+        ],
+        "summary": "Validate 4-item selection for Connections game",
+        "operationId": "validate_connections_group_api_v1_connections_validate_group_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionsValidateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionsValidateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/top10/guess": {
+      "post": {
+        "tags": [
+          "Top 10 Leaderboard"
+        ],
+        "summary": "Evaluate player guess against Top 10 Leaderboard",
+        "operationId": "submit_top10_guess_api_v1_top10_guess_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Top10GuessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Top10GuessResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ConnectionsGroup": {
+        "properties": {
+          "group_id": {
+            "type": "string",
+            "title": "Group Id"
+          },
+          "tier": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Tier",
+            "description": "1=Yellow, 2=Green, 3=Blue, 4=Purple"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "item_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Item Ids"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "group_id",
+          "tier",
+          "title",
+          "item_ids",
+          "explanation"
+        ],
+        "title": "ConnectionsGroup"
+      },
+      "ConnectionsValidateRequest": {
+        "properties": {
+          "puzzle_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Puzzle Id"
+          },
+          "selected_item_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Selected Item Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "puzzle_id",
+          "selected_item_ids"
+        ],
+        "title": "ConnectionsValidateRequest"
+      },
+      "ConnectionsValidateResponse": {
+        "properties": {
+          "is_match": {
+            "type": "boolean",
+            "title": "Is Match"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConnectionsGroup"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_one_away": {
+            "type": "boolean",
+            "title": "Is One Away",
+            "default": false
+          },
+          "matched_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matched Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_match"
+        ],
+        "title": "ConnectionsValidateResponse"
+      },
+      "DailyPuzzleResponse": {
+        "properties": {
+          "puzzle_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Puzzle Id"
+          },
+          "puzzle_number": {
+            "type": "integer",
+            "title": "Puzzle Number"
+          },
+          "target_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Target Date"
+          },
+          "game_type": {
+            "type": "string",
+            "title": "Game Type",
+            "description": "grid, reverse_grid, connections, top10"
+          },
+          "puzzle_data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Puzzle Data",
+            "description": "Game payload stripped of cheat/solution data"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "puzzle_id",
+          "puzzle_number",
+          "target_date",
+          "game_type",
+          "puzzle_data",
+          "created_at"
+        ],
+        "title": "DailyPuzzleResponse"
+      },
+      "GridValidateRequest": {
+        "properties": {
+          "puzzle_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Puzzle Id"
+          },
+          "row_index": {
+            "type": "integer",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Row Index"
+          },
+          "col_index": {
+            "type": "integer",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Col Index"
+          },
+          "player_id": {
+            "type": "string",
+            "title": "Player Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "puzzle_id",
+          "row_index",
+          "col_index",
+          "player_id"
+        ],
+        "title": "GridValidateRequest"
+      },
+      "GridValidateResponse": {
+        "properties": {
+          "is_valid": {
+            "type": "boolean",
+            "title": "Is Valid"
+          },
+          "row_index": {
+            "type": "integer",
+            "title": "Row Index"
+          },
+          "col_index": {
+            "type": "integer",
+            "title": "Col Index"
+          },
+          "player": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlayerSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rarity_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rarity Score",
+            "description": "Smoothed Bayesian rarity percentage (0.01 - 100.0%)"
+          },
+          "total_picks_for_cell": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Picks For Cell"
+          },
+          "player_picks_for_cell": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Player Picks For Cell"
+          },
+          "possible_answers_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Possible Answers Count"
+          },
+          "failed_criteria": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failed Criteria"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_valid",
+          "row_index",
+          "col_index"
+        ],
+        "title": "GridValidateResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "PlayerSummary": {
+        "properties": {
+          "player_id": {
+            "type": "string",
+            "title": "Player Id"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "position": {
+            "type": "string",
+            "title": "Position"
+          },
+          "headshot_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headshot Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "player_id",
+          "full_name",
+          "position"
+        ],
+        "title": "PlayerSummary"
+      },
+      "SearchIndexResponse": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "description": "Index snapshot version string"
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fields",
+            "description": "Field names corresponding to each row index",
+            "default": [
+              "id",
+              "name",
+              "pos",
+              "start",
+              "end",
+              "active"
+            ]
+          },
+          "players": {
+            "items": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Players",
+            "description": "Array-of-arrays compact player directory"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "players"
+        ],
+        "title": "SearchIndexResponse",
+        "description": "Compact Row-Oriented Wire Protocol schema.\nPayload size optimized to ~320 KB gzipped for all 24,000+ historical players.\nFormat: [id, full_name, primary_position, rookie_year, final_year, is_active]"
+      },
+      "Top10Entry": {
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Rank"
+          },
+          "player_id": {
+            "type": "string",
+            "title": "Player Id"
+          },
+          "player_name": {
+            "type": "string",
+            "title": "Player Name"
+          },
+          "metric_value": {
+            "type": "number",
+            "title": "Metric Value"
+          },
+          "formatted_value": {
+            "type": "string",
+            "title": "Formatted Value"
+          },
+          "active_years": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Years"
+          },
+          "primary_franchise": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Primary Franchise"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank",
+          "player_id",
+          "player_name",
+          "metric_value",
+          "formatted_value"
+        ],
+        "title": "Top10Entry"
+      },
+      "Top10GuessRequest": {
+        "properties": {
+          "puzzle_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Puzzle Id"
+          },
+          "player_id": {
+            "type": "string",
+            "title": "Player Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "puzzle_id",
+          "player_id"
+        ],
+        "title": "Top10GuessRequest"
+      },
+      "Top10GuessResponse": {
+        "properties": {
+          "is_hit": {
+            "type": "boolean",
+            "title": "Is Hit"
+          },
+          "entry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Top10Entry"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "player_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Player Name"
+          },
+          "strikes_added": {
+            "type": "integer",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Strikes Added",
+            "default": 0
+          },
+          "current_strikes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Strikes"
+          },
+          "max_strikes": {
+            "type": "integer",
+            "title": "Max Strikes",
+            "default": 3
+          },
+          "is_game_over": {
+            "type": "boolean",
+            "title": "Is Game Over",
+            "default": false
+          },
+          "total_found": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Found"
+          },
+          "remaining_unrevealed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remaining Unrevealed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_hit"
+        ],
+        "title": "Top10GuessResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
