@@ -6,6 +6,42 @@ import { PlayerSearchModal } from "@/components/PlayerSearchModal";
 import { SearchPlayerItem } from "@/lib/search/playerSearch";
 import { GameStateManager } from "@/lib/storage/gameState";
 import { CheckCircle2, AlertCircle } from "lucide-react";
+import { getTeamLogoUrl } from "@/lib/teamLogos";
+
+const CriterionHeaderCell: React.FC<{ criterion: GridCriterion }> = ({ criterion }) => {
+  const [imgError, setImgError] = useState(false);
+  const logoUrl = getTeamLogoUrl(criterion);
+
+  if (logoUrl && !imgError) {
+    return (
+      <div
+        className="w-full h-full flex items-center justify-center p-2 sm:p-3"
+        title={criterion.display_title}
+      >
+        <img
+          src={logoUrl}
+          alt={criterion.display_title}
+          onError={() => setImgError(true)}
+          className="w-full h-full object-contain filter drop-shadow-md select-none transition-transform group-hover:scale-105"
+          loading="lazy"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center text-center p-1.5 sm:p-2 overflow-hidden">
+      <div className="text-[11px] sm:text-xs md:text-sm font-bold text-white line-clamp-2 leading-tight">
+        {criterion.display_title}
+      </div>
+      {criterion.subtitle && (
+        <div className="text-[9px] sm:text-[10px] md:text-xs text-gray-400 mt-0.5 line-clamp-2 leading-tight">
+          {criterion.subtitle}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface GridBoardProps {
   puzzleId: string;
@@ -210,20 +246,23 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
       )}
 
       {/* 3x3 Matrix Grid Container */}
-      <div className="grid grid-cols-4 gap-2 w-full select-none">
-        {/* Top-Left Empty Corner */}
-        <div className="rounded-lg bg-surface/40 flex items-center justify-center p-2 text-gray-500 font-mono text-xs">
-          NFL
+      <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full select-none">
+        {/* Top-Left Empty / Shield Corner */}
+        <div className="aspect-square rounded-xl bg-surface/50 border border-border flex items-center justify-center p-2.5 sm:p-3">
+          <img
+            src="https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png"
+            alt="NFL"
+            className="w-full h-full object-contain opacity-70"
+          />
         </div>
 
         {/* Column Headers (Top) */}
         {columns.map((col, cIdx) => (
           <div
             key={col.criterion_id || cIdx}
-            className="rounded-lg bg-surface border border-border p-2 flex flex-col items-center justify-center text-center min-h-[70px]"
+            className="aspect-square rounded-xl bg-surface border border-border flex items-center justify-center overflow-hidden group shadow-sm"
           >
-            <div className="text-xs font-bold text-white line-clamp-2">{col.display_title}</div>
-            {col.subtitle && <div className="text-[10px] text-gray-400 mt-0.5">{col.subtitle}</div>}
+            <CriterionHeaderCell criterion={col} />
           </div>
         ))}
 
@@ -231,9 +270,8 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
         {rows.map((row, rIdx) => (
           <React.Fragment key={row.criterion_id || rIdx}>
             {/* Row Header (Left) */}
-            <div className="rounded-lg bg-surface border border-border p-2 flex flex-col items-center justify-center text-center min-h-[90px]">
-              <div className="text-xs font-bold text-white line-clamp-2">{row.display_title}</div>
-              {row.subtitle && <div className="text-[10px] text-gray-400 mt-0.5">{row.subtitle}</div>}
+            <div className="aspect-square rounded-xl bg-surface border border-border flex items-center justify-center overflow-hidden group shadow-sm">
+              <CriterionHeaderCell criterion={row} />
             </div>
 
             {/* 3 Cells in this row */}
@@ -247,24 +285,28 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
                   key={cellKey}
                   disabled={isFilled || guessesRemaining <= 0 || isValidating}
                   onClick={() => handleCellClick(rIdx, cIdx)}
-                  className={`rounded-lg border p-2 flex flex-col items-center justify-center text-center transition-all ${
+                  className={`aspect-square rounded-xl border p-1.5 sm:p-2.5 flex flex-col items-center justify-center text-center transition-all duration-150 relative overflow-hidden group ${
                     isFilled
-                      ? "bg-emerald-950/30 border-emerald-500/40 text-white"
+                      ? "bg-emerald-950/40 border-emerald-500/50 shadow-inner text-white"
                       : guessesRemaining <= 0
-                      ? "bg-surface/30 border-border/50 text-gray-600 cursor-not-allowed"
-                      : "bg-surface border-border hover:border-nfl-blue hover:bg-surface-raised cursor-pointer"
+                      ? "bg-surface/20 border-border/40 text-gray-600 cursor-not-allowed"
+                      : "bg-surface border-border hover:border-nfl-blue hover:bg-surface-raised cursor-pointer hover:shadow-md"
                   }`}
                 >
                   {isFilled ? (
                     <>
-                      <div className="text-xs font-bold text-white line-clamp-1">{cellData?.player_name}</div>
-                      <div className="text-[10px] font-semibold text-emerald-400 mt-1 flex items-center space-x-1">
-                        <CheckCircle2 className="h-3 w-3" />
+                      <div className="text-[11px] sm:text-xs md:text-sm font-bold text-white line-clamp-2 leading-tight px-0.5">
+                        {cellData?.player_name}
+                      </div>
+                      <div className="text-[9px] sm:text-[10px] md:text-xs font-semibold text-emerald-400 mt-1 flex items-center space-x-0.5 sm:space-x-1 bg-emerald-900/50 border border-emerald-500/30 px-1.5 py-0.5 rounded-full">
+                        <CheckCircle2 className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0" />
                         <span>{cellData?.rarity_score}%</span>
                       </div>
                     </>
                   ) : (
-                    <span className="text-xl text-gray-600 font-light">+</span>
+                    <span className="text-xl sm:text-2xl text-gray-500 font-light group-hover:text-blue-400 transition-colors">
+                      +
+                    </span>
                   )}
                 </button>
               );
