@@ -64,11 +64,11 @@ export const PlayerSearchModal: React.FC<PlayerSearchModalProps> = ({
       }
       setResults(initialSuggestions);
 
-      // Async background catalog sync
+      // Async background catalog sync — always refresh results after load,
+      // whether the input is empty (initial suggestions) or has a query.
       playerSearchEngine.init().then(() => {
-        if (inputRef.current?.value) {
-          handleQueryChange(inputRef.current.value);
-        }
+        const currentVal = inputRef.current?.value ?? "";
+        handleQueryChange(currentVal);
       });
 
       setTimeout(() => inputRef.current?.focus(), 50);

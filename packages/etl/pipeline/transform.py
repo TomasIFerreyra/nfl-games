@@ -1,3 +1,4 @@
+import datetime
 import uuid
 from typing import Any, Dict, List, Optional
 import pandas as pd
@@ -112,7 +113,7 @@ class NFLDataTransformer:
 
             rookie_year = int(group[season_col].min())
             max_year = int(group[season_col].max())
-            is_active = bool(max_year >= 2024)
+            is_active = bool(max_year >= datetime.datetime.now().year)
 
             # Safely resolve pfr_id without NaN string leaks
             raw_pfr = pfr_map.get(gsis_id)

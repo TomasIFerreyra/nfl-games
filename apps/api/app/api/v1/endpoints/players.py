@@ -25,7 +25,7 @@ async def get_player_search_index(
     Fields: [id, full_name, primary_position, rookie_year, final_year, is_active]
     Transfer size: ~320 KB gzipped.
     """
-    response.headers["Cache-Control"] = "public, max-age=86400, immutable"
+    response.headers["Cache-Control"] = "public, max-age=3600, stale-while-revalidate=86400"
 
     query = (
         select(

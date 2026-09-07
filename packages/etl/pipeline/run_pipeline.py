@@ -1,5 +1,6 @@
-﻿import argparse
+import argparse
 import asyncio
+import datetime
 import json
 import logging
 import os
@@ -124,8 +125,8 @@ def main():
     parser.add_argument(
         "--seasons",
         type=str,
-        default="2022-2024",
-        help="Seasons to ingest, e.g. '2023,2024' or '2020-2024'"
+        default=f"2022-{datetime.datetime.now().year}",
+        help="Seasons to ingest, e.g. '2023,2024' or '2020-2025'"
     )
     parser.add_argument(
         "--db-url",
