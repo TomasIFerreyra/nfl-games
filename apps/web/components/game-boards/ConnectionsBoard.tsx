@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ConnectionsItem, ConnectionsGroup, ConnectionsValidateResponse } from "@nfl-games/contracts";
 import { GameStateManager } from "@/lib/storage/gameState";
-import { Shuffle, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Shuffle, AlertTriangle, CheckCircle2, RotateCcw } from "lucide-react";
 
 interface ConnectionsBoardProps {
   puzzleId: string;
@@ -18,6 +18,30 @@ export const ConnectionsBoard: React.FC<ConnectionsBoardProps> = ({ puzzleId, it
   const [isOneAway, setIsOneAway] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmRestart, setConfirmRestart] = useState(false);
+
+  const handleRestart = (puzzleId: string, items: ConnectionsItem[]) => {
+    if (!confirmRestart) {
+      setConfirmRestart(true);
+      return;
+    }
+    setBoardItems([...items]);
+    setSelectedIds([]);
+    setStrikesRemaining(4);
+    setSolvedGroups([]);
+    setIsOneAway(false);
+    setErrorMessage(null);
+    setConfirmRestart(false);
+    const state = GameStateManager.loadState();
+    state.games.connections.puzzle_id = puzzleId;
+    state.games.connections.strikes_remaining = 4;
+    state.games.connections.solved_groups = [];
+    state.games.connections.guess_history = [];
+    state.games.connections.is_completed = false;
+    GameStateManager.saveState(state);
+  };
+
+
 
   useEffect(() => {
     const state = GameStateManager.loadState();
@@ -247,8 +271,35 @@ export const ConnectionsBoard: React.FC<ConnectionsBoardProps> = ({ puzzleId, it
               ? `Completed with ${strikesRemaining} mistakes remaining.`
               : "Better luck tomorrow!"}
           </p>
+          <div className="mt-3 flex items-center justify-center gap-2">
+            {confirmRestart ? (
+              <>
+                <button
+                  onClick={() => handleRestart(puzzleId, items)}
+                  className="px-4 py-1.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-colors"
+                >
+                  Yes, restart
+                </button>
+                <button
+                  onClick={() => setConfirmRestart(false)}
+                  className="px-4 py-1.5 rounded-full border border-border bg-surface hover:bg-surface-raised text-gray-300 text-xs transition-colors"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => handleRestart(puzzleId, items)}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-border bg-surface hover:bg-surface-raised text-gray-300 text-xs font-medium transition-colors"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Restart
+              </button>
+            )}
+          </div>
         </div>
       )}
+
     </div>
   );
 };

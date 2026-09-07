@@ -5,7 +5,7 @@ import { GridCriterion, GridValidateResponse } from "@nfl-games/contracts";
 import { PlayerSearchModal } from "@/components/PlayerSearchModal";
 import { SearchPlayerItem } from "@/lib/search/playerSearch";
 import { GameStateManager } from "@/lib/storage/gameState";
-import { CheckCircle2, AlertCircle } from "lucide-react";
+import { CheckCircle2, AlertCircle, RotateCcw } from "lucide-react";
 import { getTeamLogoUrl } from "@/lib/teamLogos";
 
 const CriterionHeaderCell: React.FC<{ criterion: GridCriterion }> = ({ criterion }) => {
@@ -81,6 +81,35 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
   const [usedPlayerIds, setUsedPlayerIds] = useState<string[]>([]);
   const [lastValidation, setLastValidation] = useState<GridValidateResponse | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [confirmRestart, setConfirmRestart] = useState(false);
+
+  const handleRestart = () => {
+    if (!confirmRestart) {
+      setConfirmRestart(true);
+      return;
+    }
+    // Reset in-memory state
+    const emptyCells = {
+      r0_c0: null, r0_c1: null, r0_c2: null,
+      r1_c0: null, r1_c1: null, r1_c2: null,
+      r2_c0: null, r2_c1: null, r2_c2: null,
+    };
+    setGuessesRemaining(9);
+    setCells(emptyCells);
+    setUsedPlayerIds([]);
+    setLastValidation(null);
+    setSelectedCell(null);
+    setConfirmRestart(false);
+    // Reset localStorage
+    const state = GameStateManager.loadState();
+    state.games.grid.guesses_remaining = 9;
+    state.games.grid.cells = emptyCells;
+    state.games.grid.used_player_ids = [];
+    state.games.grid.is_completed = false;
+    GameStateManager.saveState(state);
+  };
+
+
 
   // Load from local storage
   useEffect(() => {
@@ -325,8 +354,35 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
             You solved {solvedCount} of 9 cells. Total Rarity Score:{" "}
             <span className="font-bold text-amber-400">{totalRarity.toFixed(1)}</span>
           </p>
+          <div className="mt-3 flex items-center justify-center gap-2">
+            {confirmRestart ? (
+              <>
+                <button
+                  onClick={handleRestart}
+                  className="px-4 py-1.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-colors"
+                >
+                  Yes, restart
+                </button>
+                <button
+                  onClick={() => setConfirmRestart(false)}
+                  className="px-4 py-1.5 rounded-full border border-border bg-surface hover:bg-surface-raised text-gray-300 text-xs transition-colors"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleRestart}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-border bg-surface hover:bg-surface-raised text-gray-300 text-xs font-medium transition-colors"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Restart
+              </button>
+            )}
+          </div>
         </div>
       )}
+
 
       {/* Search Modal */}
       <PlayerSearchModal

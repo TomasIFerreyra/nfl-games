@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +11,39 @@ from app.domain.top10_validator import Top10Validator
 from app.schemas.top10 import Top10Entry, Top10GuessRequest, Top10GuessResponse
 
 router = APIRouter(prefix="/top10", tags=["Top 10 Leaderboard"])
+
+
+@router.get(
+    "/leaderboard/{puzzle_id}",
+    response_model=List[Top10Entry],
+    summary="Reveal full Top 10 leaderboard (used after game over or resignation)",
+)
+async def get_top10_leaderboard(
+    puzzle_id: str,
+    session: AsyncSession = Depends(get_async_session),
+) -> List[Top10Entry]:
+    puzzle_query = select(DailyPuzzle).where(DailyPuzzle.puzzle_id == puzzle_id)
+    puzzle = (await session.execute(puzzle_query)).scalar_one_or_none()
+
+    if not puzzle or puzzle.game_type != "TOP10":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Valid Top 10 puzzle not found for the supplied puzzle_id.",
+        )
+
+    leaderboard = puzzle.puzzle_data.get("leaderboard", [])
+    return [
+        Top10Entry(
+            rank=entry["rank"],
+            player_id=entry["player_id"],
+            player_name=entry["player_name"],
+            metric_value=entry["metric_value"],
+            formatted_value=entry["formatted_value"],
+            active_years=entry.get("active_years"),
+            primary_franchise=entry.get("primary_franchise"),
+        )
+        for entry in leaderboard
+    ]
 
 
 @router.post(

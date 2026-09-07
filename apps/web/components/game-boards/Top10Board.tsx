@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Top10Entry, Top10GuessResponse } from "@nfl-games/contracts";
 import { PlayerSearchModal } from "@/components/PlayerSearchModal";
 import { SearchPlayerItem } from "@/lib/search/playerSearch";
 import { GameStateManager } from "@/lib/storage/gameState";
-import { Search, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import { Search, AlertCircle, CheckCircle2, XCircle, Flag, RotateCcw } from "lucide-react";
 
 interface Top10BoardProps {
   puzzleId: string;
@@ -39,6 +39,33 @@ export const Top10Board: React.FC<Top10BoardProps> = ({
   const [missedGuesses, setMissedGuesses] = useState<string[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [lastFeedback, setLastFeedback] = useState<{ message: string; isError: boolean } | null>(null);
+  const [isResigned, setIsResigned] = useState(false);
+  const [fullLeaderboard, setFullLeaderboard] = useState<Record<number, Top10Entry>>({});
+  const [confirmResign, setConfirmResign] = useState(false);
+  const [confirmRestart, setConfirmRestart] = useState(false);
+
+  const handleRestart = () => {
+    if (!confirmRestart) {
+      setConfirmRestart(true);
+      return;
+    }
+    setRevealedEntries({});
+    setStrikesRemaining(3);
+    setMissedGuesses([]);
+    setLastFeedback(null);
+    setIsResigned(false);
+    setFullLeaderboard({});
+    setConfirmResign(false);
+    setConfirmRestart(false);
+    const state = GameStateManager.loadState();
+    state.games.top10.strikes_remaining = 3;
+    state.games.top10.revealed_ranks = [];
+    state.games.top10.missed_guesses = [];
+    state.games.top10.is_completed = false;
+    GameStateManager.saveState(state);
+  };
+
+
 
   useEffect(() => {
     const state = GameStateManager.loadState();
@@ -63,6 +90,42 @@ export const Top10Board: React.FC<Top10BoardProps> = ({
       setRevealedEntries({});
       setMissedGuesses([]);
     }
+  }, [puzzleId]);
+
+  /** Fetches the full leaderboard from the API, falls back to demo data */
+  const fetchAndRevealAll = useCallback(async (alreadyRevealed: Record<number, Top10Entry>) => {
+    let allEntries: Record<number, Top10Entry> = {};
+
+    try {
+      const res = await fetch(`/api/v1/top10/leaderboard/${puzzleId}`);
+      if (res.ok) {
+        const data: Top10Entry[] = await res.json();
+        for (const entry of data) {
+          allEntries[entry.rank] = entry;
+        }
+      }
+    } catch {
+      // Fallback to demo leaderboard
+    }
+
+    // If API had no data, use demo fallback
+    if (Object.keys(allEntries).length === 0) {
+      for (const entry of Object.values(DEMO_TOP10_LEADERBOARD)) {
+        allEntries[entry.rank] = entry;
+      }
+    }
+
+    // Merge: keep already-revealed entries, fill missing with full leaderboard
+    const merged: Record<number, Top10Entry> = { ...alreadyRevealed };
+    for (const [rankStr, entry] of Object.entries(allEntries)) {
+      const rank = Number(rankStr);
+      if (!merged[rank]) {
+        merged[rank] = entry;
+      }
+    }
+
+    setFullLeaderboard(allEntries);
+    setRevealedEntries(merged);
   }, [puzzleId]);
 
   const handleSelectPlayer = async (player: SearchPlayerItem) => {
@@ -127,6 +190,7 @@ export const Top10Board: React.FC<Top10BoardProps> = ({
       const isWin = Object.keys(nextRevealed).length === 10;
       if (isWin) {
         GameStateManager.updateStreak("top10", true);
+        await fetchAndRevealAll(nextRevealed);
       }
 
       const state = GameStateManager.loadState();
@@ -145,6 +209,7 @@ export const Top10Board: React.FC<Top10BoardProps> = ({
 
       if (nextStrikes <= 0) {
         GameStateManager.updateStreak("top10", false);
+        await fetchAndRevealAll(revealedEntries);
       }
 
       const state = GameStateManager.loadState();
@@ -155,8 +220,29 @@ export const Top10Board: React.FC<Top10BoardProps> = ({
     }
   };
 
+  const handleResign = async () => {
+    if (!confirmResign) {
+      setConfirmResign(true);
+      return;
+    }
+    setConfirmResign(false);
+    setIsResigned(true);
+    GameStateManager.updateStreak("top10", false);
+
+    const state = GameStateManager.loadState();
+    state.games.top10.strikes_remaining = 0;
+    state.games.top10.is_completed = true;
+    GameStateManager.saveState(state);
+
+    await fetchAndRevealAll(revealedEntries);
+  };
+
   const solvedCount = Object.keys(revealedEntries).length;
-  const isGameOver = strikesRemaining <= 0 || solvedCount === 10;
+  const isGameOver = strikesRemaining <= 0 || solvedCount === 10 || isResigned;
+  const isWin = solvedCount === 10 && !isResigned;
+
+  // Decide which entries to display in the slots
+  const displayEntries = isGameOver ? { ...fullLeaderboard, ...revealedEntries } : revealedEntries;
 
   return (
     <div className="w-full max-w-xl mx-auto flex flex-col items-center">
@@ -204,41 +290,83 @@ export const Top10Board: React.FC<Top10BoardProps> = ({
         </div>
       )}
 
-      {/* Guess Input Trigger Button */}
+      {/* Guess Input + Resign Row */}
       {!isGameOver && (
-        <button
-          onClick={() => setIsSearchOpen(true)}
-          className="w-full mb-6 p-3 rounded-xl border border-border bg-surface hover:border-nfl-blue hover:bg-surface-raised transition-all flex items-center justify-between text-gray-400 text-sm shadow-md group"
-        >
-          <div className="flex items-center space-x-2.5">
-            <Search className="h-4 w-4 text-gray-400 group-hover:text-white" />
-            <span className="group-hover:text-gray-200">Guess a player in the Top 10...</span>
-          </div>
-          <span className="text-xs px-2 py-0.5 rounded bg-surface-raised border border-border text-gray-400">
-            Search
-          </span>
-        </button>
+        <div className="w-full mb-6 flex items-stretch gap-2">
+          {/* Search button */}
+          <button
+            onClick={() => {
+              setConfirmResign(false);
+              setIsSearchOpen(true);
+            }}
+            className="flex-1 p-3 rounded-xl border border-border bg-surface hover:border-nfl-blue hover:bg-surface-raised transition-all flex items-center justify-between text-gray-400 text-sm shadow-md group"
+          >
+            <div className="flex items-center space-x-2.5">
+              <Search className="h-4 w-4 text-gray-400 group-hover:text-white" />
+              <span className="group-hover:text-gray-200">Guess a player in the Top 10...</span>
+            </div>
+            <span className="text-xs px-2 py-0.5 rounded bg-surface-raised border border-border text-gray-400">
+              Search
+            </span>
+          </button>
+
+          {/* Resign button */}
+          {confirmResign ? (
+            <div className="flex items-stretch gap-1">
+              <button
+                onClick={handleResign}
+                className="px-3 rounded-xl border border-rose-600 bg-rose-950/40 text-rose-400 text-xs font-bold hover:bg-rose-900/50 transition-all"
+              >
+                Confirm
+              </button>
+              <button
+                onClick={() => setConfirmResign(false)}
+                className="px-3 rounded-xl border border-border bg-surface text-gray-400 text-xs hover:bg-surface-raised transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleResign}
+              title="Resign and reveal answers"
+              className="px-3 rounded-xl border border-border bg-surface hover:border-rose-600 hover:bg-rose-950/30 hover:text-rose-400 text-gray-500 transition-all flex items-center gap-1.5 text-xs"
+            >
+              <Flag className="h-3.5 w-3.5" />
+              <span>Resign</span>
+            </button>
+          )}
+        </div>
       )}
 
       {/* 10 Ranked Slots */}
       <div className="w-full space-y-2 mb-6">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((rank) => {
-          const entry = revealedEntries[rank];
+          const entry = displayEntries[rank];
           const isRevealed = Boolean(entry);
+          // Was this revealed by the player (not just auto-revealed on game over)?
+          const wasGuessed = Boolean(revealedEntries[rank]);
+          const isAutoRevealed = isGameOver && isRevealed && !wasGuessed;
 
           return (
             <div
               key={rank}
               className={`w-full p-3 rounded-lg border flex items-center justify-between transition-all ${
                 isRevealed
-                  ? "bg-surface-raised border-emerald-500/30 text-white"
+                  ? isAutoRevealed
+                    ? "bg-surface-raised border-gray-600/50 text-white"
+                    : "bg-surface-raised border-emerald-500/30 text-white"
                   : "bg-surface/50 border-border/70 text-gray-500"
               }`}
             >
               <div className="flex items-center space-x-3">
                 <span
                   className={`flex h-6 w-6 items-center justify-center rounded text-xs font-black ${
-                    isRevealed ? "bg-nfl-blue text-white" : "bg-surface-raised text-gray-500"
+                    isRevealed
+                      ? isAutoRevealed
+                        ? "bg-gray-700 text-gray-300"
+                        : "bg-nfl-blue text-white"
+                      : "bg-surface-raised text-gray-500"
                   }`}
                 >
                   {rank}
@@ -246,7 +374,13 @@ export const Top10Board: React.FC<Top10BoardProps> = ({
 
                 {isRevealed ? (
                   <div>
-                    <span className="text-sm font-bold text-white">{entry.player_name}</span>
+                    <span
+                      className={`text-sm font-bold ${
+                        isAutoRevealed ? "text-gray-300" : "text-white"
+                      }`}
+                    >
+                      {entry.player_name}
+                    </span>
                     {entry.primary_franchise && (
                       <span className="text-[10px] uppercase ml-2 px-1.5 py-0.5 rounded bg-surface text-gray-400 border border-border">
                         {entry.primary_franchise}
@@ -260,7 +394,13 @@ export const Top10Board: React.FC<Top10BoardProps> = ({
 
               <div>
                 {isRevealed ? (
-                  <span className="text-sm font-black text-amber-400">{entry.formatted_value}</span>
+                  <span
+                    className={`text-sm font-black ${
+                      isAutoRevealed ? "text-gray-400" : "text-amber-400"
+                    }`}
+                  >
+                    {entry.formatted_value}
+                  </span>
                 ) : (
                   <span className="text-xs text-gray-600">Hidden</span>
                 )}
@@ -292,13 +432,46 @@ export const Top10Board: React.FC<Top10BoardProps> = ({
       {isGameOver && (
         <div className="w-full p-4 rounded-xl bg-surface border border-border text-center animate-in fade-in duration-300">
           <h3 className="text-lg font-bold text-white">
-            {solvedCount === 10 ? "🏆 Flawless! Complete Top 10 Found!" : "Game Over"}
+            {isWin
+              ? "🏆 Flawless! Complete Top 10 Found!"
+              : isResigned
+              ? "🏳️ Resigned — Better luck next time!"
+              : "💀 Game Over — 3 Strikes"}
           </h3>
           <p className="text-xs text-gray-400 mt-1">
-            You found {solvedCount} of 10 leaders.
+            {isWin
+              ? "You identified all 10 leaders!"
+              : `You found ${solvedCount} of 10 leaders.`}
           </p>
+          <div className="mt-3 flex items-center justify-center gap-2">
+            {confirmRestart ? (
+              <>
+                <button
+                  onClick={handleRestart}
+                  className="px-4 py-1.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-colors"
+                >
+                  Yes, restart
+                </button>
+                <button
+                  onClick={() => setConfirmRestart(false)}
+                  className="px-4 py-1.5 rounded-full border border-border bg-surface hover:bg-surface-raised text-gray-300 text-xs transition-colors"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleRestart}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-border bg-surface hover:bg-surface-raised text-gray-300 text-xs font-medium transition-colors"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Restart
+              </button>
+            )}
+          </div>
         </div>
       )}
+
 
       <PlayerSearchModal
         isOpen={isSearchOpen}
