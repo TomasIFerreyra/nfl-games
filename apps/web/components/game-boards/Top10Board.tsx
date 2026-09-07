@@ -131,10 +131,14 @@ export const Top10Board: React.FC<Top10BoardProps> = ({
   const handleSelectPlayer = async (player: SearchPlayerItem) => {
     if (strikesRemaining <= 0 || Object.keys(revealedEntries).length === 10) return;
 
-    // Check if already guessed
+    const playerNameLower = player.name.toLowerCase().trim();
+
+    // Check if already guessed — match by name (case-insensitive) to handle ID mismatches
     if (
-      Object.values(revealedEntries).some((e) => e.player_id === player.id) ||
-      missedGuesses.includes(player.name)
+      Object.values(revealedEntries).some(
+        (e) => e.player_id === player.id || e.player_name.toLowerCase().trim() === playerNameLower
+      ) ||
+      missedGuesses.some((n) => n.toLowerCase().trim() === playerNameLower)
     ) {
       setLastFeedback({ message: `${player.name} has already been guessed!`, isError: true });
       return;
@@ -159,9 +163,13 @@ export const Top10Board: React.FC<Top10BoardProps> = ({
       // Backend offline: fallback
     }
 
-    // Fallback evaluation
+    // Fallback evaluation — match by ID first, then by name to handle ID mismatches
     if (!data) {
-      const entry = DEMO_TOP10_LEADERBOARD[player.id];
+      const entry =
+        DEMO_TOP10_LEADERBOARD[player.id] ??
+        Object.values(DEMO_TOP10_LEADERBOARD).find(
+          (e) => e.player_name.toLowerCase().trim() === playerNameLower
+        );
       if (entry) {
         data = {
           is_hit: true,

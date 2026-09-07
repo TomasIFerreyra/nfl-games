@@ -146,7 +146,15 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
   const handleSelectPlayer = async (player: SearchPlayerItem) => {
     if (!selectedCell || guessesRemaining <= 0) return;
 
-    if (usedPlayerIds.includes(player.id)) {
+    const playerNameLower = player.name.toLowerCase().trim();
+
+    // Check if already used — match by name too in case IDs differ between DB and demo data
+    const alreadyUsedById = usedPlayerIds.includes(player.id);
+    const alreadyUsedByName = Object.values(cells).some(
+      (c) => c !== null && c.player_name.toLowerCase().trim() === playerNameLower
+    );
+
+    if (alreadyUsedById || alreadyUsedByName) {
       setLastValidation({
         is_valid: false,
         row_index: selectedCell.r,
@@ -179,7 +187,7 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
       // Backend offline: fallback to client validation
     }
 
-    // Offline / Demo validation fallback
+    // Offline / Demo validation fallback — match by ID first, then by name for cross-source IDs
     if (!data) {
       const validAnswers = DEMO_CELL_ANSWERS[cellKey] || [];
       const isValid = validAnswers.includes(player.id);
@@ -237,6 +245,8 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
     setIsValidating(false);
     setSelectedCell(null);
   };
+
+
 
   const solvedCount = Object.values(cells).filter((c) => c !== null).length;
   const totalRarity = Object.values(cells)

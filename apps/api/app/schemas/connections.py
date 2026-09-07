@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Optional
+from typing import List, Optional, Union
 from pydantic import BaseModel, Field
 
 
@@ -23,7 +23,7 @@ class ConnectionsPuzzleData(BaseModel):
 
 
 class ConnectionsValidateRequest(BaseModel):
-    puzzle_id: uuid.UUID
+    puzzle_id: Union[uuid.UUID, str]
     selected_item_ids: List[str] = Field(..., min_length=4, max_length=4)
 
 

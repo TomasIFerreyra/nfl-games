@@ -53,22 +53,35 @@ export const PlayerSearchModal: React.FC<PlayerSearchModalProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const getInitialSuggestions = () => {
+    let initialSuggestions = playerSearchEngine.search("a", 6);
+    if (!initialSuggestions || initialSuggestions.length === 0) {
+      initialSuggestions = fallbackSearch("a", 6);
+    }
+    return initialSuggestions;
+  };
+
+  const resetSearch = () => {
+    setQuery("");
+    setSelectedIndex(0);
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+    setResults(getInitialSuggestions());
+  };
+
   useEffect(() => {
     if (isOpen) {
-      setQuery("");
-      setSelectedIndex(0);
-      // Show top suggestions immediately
-      let initialSuggestions = playerSearchEngine.search("a", 6);
-      if (!initialSuggestions || initialSuggestions.length === 0) {
-        initialSuggestions = fallbackSearch("a", 6);
-      }
-      setResults(initialSuggestions);
+      resetSearch();
 
-      // Async background catalog sync — always refresh results after load,
-      // whether the input is empty (initial suggestions) or has a query.
+      // Async background catalog sync — always refresh results after load
       playerSearchEngine.init().then(() => {
         const currentVal = inputRef.current?.value ?? "";
-        handleQueryChange(currentVal);
+        if (currentVal.trim()) {
+          handleQueryChange(currentVal);
+        } else {
+          setResults(getInitialSuggestions());
+        }
       });
 
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -79,11 +92,7 @@ export const PlayerSearchModal: React.FC<PlayerSearchModalProps> = ({
     setQuery(val);
     if (!val.trim()) {
       // Show default top suggestions when query is cleared
-      let defaultSuggestions = playerSearchEngine.search("a", 6);
-      if (!defaultSuggestions || defaultSuggestions.length === 0) {
-        defaultSuggestions = fallbackSearch("a", 6);
-      }
-      setResults(defaultSuggestions);
+      setResults(getInitialSuggestions());
       setSelectedIndex(0);
       return;
     }
@@ -95,9 +104,20 @@ export const PlayerSearchModal: React.FC<PlayerSearchModalProps> = ({
     setSelectedIndex(0);
   };
 
+  const handleSelect = (player: SearchPlayerItem) => {
+    resetSearch();
+    onSelectPlayer(player);
+    onClose();
+  };
+
+  const handleClose = () => {
+    resetSearch();
+    onClose();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
-      onClose();
+      handleClose();
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
       setSelectedIndex((prev) => (prev < results.length - 1 ? prev + 1 : prev));
@@ -106,21 +126,26 @@ export const PlayerSearchModal: React.FC<PlayerSearchModalProps> = ({
       setSelectedIndex((prev) => (prev > 0 ? prev - 1 : 0));
     } else if (e.key === "Enter" && results[selectedIndex]) {
       e.preventDefault();
-      onSelectPlayer(results[selectedIndex]);
-      onClose();
+      handleSelect(results[selectedIndex]);
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="w-full max-w-lg overflow-hidden rounded-xl border border-border bg-surface shadow-2xl">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150"
+      onClick={handleClose}
+    >
+      <div
+        className="w-full max-w-lg overflow-hidden rounded-xl border border-border bg-surface shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-surface-raised/40">
           <h3 className="text-sm font-semibold text-gray-200">{title}</h3>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="rounded p-1 text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
           >
             <X className="h-5 w-5" />
@@ -141,7 +166,15 @@ export const PlayerSearchModal: React.FC<PlayerSearchModalProps> = ({
           />
           {query && (
             <button
-              onClick={() => handleQueryChange("")}
+              onClick={() => {
+                setQuery("");
+                if (inputRef.current) {
+                  inputRef.current.value = "";
+                  inputRef.current.focus();
+                }
+                setResults(getInitialSuggestions());
+                setSelectedIndex(0);
+              }}
               className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
             >
               <X className="h-4 w-4" />
@@ -157,10 +190,7 @@ export const PlayerSearchModal: React.FC<PlayerSearchModalProps> = ({
               return (
                 <button
                   key={player.id}
-                  onClick={() => {
-                    onSelectPlayer(player);
-                    onClose();
-                  }}
+                  onClick={() => handleSelect(player)}
                   onMouseEnter={() => setSelectedIndex(idx)}
                   className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
                     isSelected ? "bg-nfl-blue/30 text-white" : "text-gray-300 hover:bg-surface-raised/60"
