@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Optional
+from typing import List, Optional, Union
 from pydantic import BaseModel, Field
 
 
@@ -22,7 +22,7 @@ class Top10PuzzleData(BaseModel):
 
 
 class Top10GuessRequest(BaseModel):
-    puzzle_id: uuid.UUID
+    puzzle_id: Union[uuid.UUID, str]
     player_id: str
 
 

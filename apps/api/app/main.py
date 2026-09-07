@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.v1.router import api_router
 from app.core.config import settings
+from app.core.redis import close_redis_pool, init_redis_pool
 from app.db.session import close_db_connection
 
 
@@ -15,8 +16,10 @@ from app.db.session import close_db_connection
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan context manager handling startup and teardown."""
     # Startup tasks (connections, caches, etc.)
+    await init_redis_pool()
     yield
     # Shutdown tasks
+    await close_redis_pool()
     await close_db_connection()
 
 

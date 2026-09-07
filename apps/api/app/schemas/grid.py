@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 
 from app.schemas.player import PlayerSummary
@@ -21,7 +21,7 @@ class GridPuzzleData(BaseModel):
 
 
 class GridValidateRequest(BaseModel):
-    puzzle_id: uuid.UUID
+    puzzle_id: Union[uuid.UUID, str]
     row_index: int = Field(..., ge=0, le=2)
     col_index: int = Field(..., ge=0, le=2)
     player_id: str

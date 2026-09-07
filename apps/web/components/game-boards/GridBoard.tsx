@@ -49,23 +49,324 @@ interface GridBoardProps {
   columns: GridCriterion[];
 }
 
-// Client-side validation fallback dictionary for demo/offline play resilience
+// Comprehensive set of 1st-Round Draft Picks across history + 2024, 2025, and 2026 draft classes
+const ROUND_1_DRAFT_PICKS = new Set([
+  // 2026 Draft Class top & projected 1st rounders
+  "arch manning", "nico iamaleava", "jeremiah smith", "ryan williams", "dylan stewart",
+  "jordan seaton", "colin simmons", "ellis robinson iv", "ellis robinson", "garrett nussmeier",
+  "conner weigman", "zachariah branch", "caleb downs", "eugene wilson iii", "eugene wilson",
+  "peter woods", "francis mauigoa", "kadyn proctor", "rueben owens", "justice haynes",
+  "nyck harbor", "dj lagway", "anthony hill jr", "carnell tate", "tj shanahan",
+  "samson okunlola", "suntarine perkins", "peyton bowen", "adepoju adebawore", "damon wilson jr",
+  "jordan hall", "daevin hobbs", "taurean york", "tony mitchell", "malik muhammad",
+  "cormani mcclain", "jaylen mbakwe", "kj bolden", "sammy brown", "terry bussey",
+
+  // 2025 Draft Class 1st rounders & top prospects
+  "cam ward", "travis hunter", "shedeur sanders", "abdul carter", "ashton jeanty",
+  "tetairoa mcmillan", "mason graham", "will campbell", "malaki starks", "kelvin banks jr",
+  "kelvin banks", "james pearce jr", "james pearce", "tyler booker", "luther burden iii",
+  "luther burden", "colston loveland", "mykel williams", "shavon revel jr", "shavon revel",
+  "jalon walker", "kenneth grant", "nic scourton", "jalen milroe", "quinn ewers",
+  "jaxson dart", "emeka egbuka", "isaiah bond", "treveyon henderson", "quinshon judkins",
+  "jonah savaiinaea", "josh simmons", "benjamin morrison", "will johnson", "jack sawyer",
+  "derrick harmon", "walter nolen", "jihaad campbell", "carson beck", "tyler warren",
+  "aireontae ersery", "wyatt milum", "josh conerly jr", "josh conerly", "grey zabel",
+  "matthew golden", "tre harris", "xavier restrepo", "jayden higgins", "omarion hampton",
+  "kaleb johnson", "nicholas singleton", "princely umanmielen", "landon jackson", "mike green",
+  "donovan ezeiruaku", "tj sanders", "t.j. sanders", "deone walker", "jahdae barron",
+  "maxwell hairston", "tacario davis", "trey amos", "xavier watts", "andrew mukuba",
+  "nick emmanwori", "kevin winston jr", "kevin winston", "lathan ransom", "cam skattebo",
+  "harold fannin jr", "kyle monangai", "armand membou",
+
+  // 2024 Draft Class 1st rounders
+  "caleb williams", "jayden daniels", "drake maye", "marvin harrison jr", "marvin harrison",
+  "joe alt", "malik nabers", "jc latham", "michael penix jr", "michael penix",
+  "rome odunze", "jj mccarthy", "j.j. mccarthy", "olu fashanu", "olumuyiwa fashanu",
+  "bo nix", "brock bowers", "taliese fuaga", "laiatu latu", "byron murphy ii",
+  "dallas turner", "amarius mims", "jared verse", "troy fautanu", "chop robinson",
+  "quinyon mitchell", "brian thomas jr", "terrion arnold", "jordan morgan", "graham barton",
+  "darius robinson", "xavier worthy", "tyler guyton", "nate wiggins", "ricky pearsall",
+  "xavier legette",
+
+  // Active & Historical 1st round picks
+  "patrick mahomes", "aaron rodgers", "peyton manning", "eli manning", "dan marino",
+  "john elway", "jim kelly", "terry bradshaw", "troy aikman", "cam newton",
+  "matthew stafford", "joe burrow", "josh allen", "lamar jackson", "justin herbert",
+  "trevor lawrence", "jordan love", "baker mayfield", "kyler murray", "tua tagovailoa",
+  "jared goff", "cj stroud", "c.j. stroud", "carson palmer", "donovan mcnabb",
+  "drew bledsoe", "joe flacco", "jay cutler", "sam darnold", "mark sanchez",
+  "zach wilson", "michael vick", "daunte culpepper", "alex smith", "matt ryan",
+  "philip rivers", "ben roethlisberger", "emmitt smith", "barry sanders", "walter payton",
+  "adrian peterson", "christian mccaffrey", "ladainian tomlinson", "eric dickerson",
+  "oj simpson", "o.j. simpson", "earl campbell", "marshall faulk", "jerome bettis",
+  "tony dorsett", "marcus allen", "john riggins", "franco harris", "gale sayers",
+  "marshawn lynch", "saquon barkley", "bijan robinson", "jahmyr gibbs", "shaun alexander",
+  "edgerrin james", "jerry rice", "randy moss", "larry fitzgerald", "calvin johnson",
+  "tim brown", "reggie wayne", "torry holt", "michael irvin", "james lofton",
+  "julio jones", "deandre hopkins", "justin jefferson", "jamarr chase", "ja'marr chase",
+  "ceedee lamb", "mike evans", "dj moore", "d.j. moore", "garrett wilson", "chris olave",
+  "tony gonzalez", "greg olsen", "tj hockenson", "t.j. hockenson", "kyle pitts",
+  "reggie white", "bruce smith", "lawrence taylor", "jj watt", "j.j. watt",
+  "tj watt", "t.j. watt", "aaron donald", "von miller", "myles garrett",
+  "nick bosa", "joey bosa", "micah parsons", "derrick thomas", "dwight freeney",
+  "clay matthews", "julius peppers", "demarcus ware", "ndamukong suh", "quinnen williams",
+  "ray lewis", "brian urlacher", "dick butkus", "junior seau", "luke kuechly",
+  "patrick willis", "derrick brooks", "roquan smith", "deion sanders", "charles woodson",
+  "rod woodson", "ed reed", "troy polamalu", "ronnie lott", "darrelle revis",
+  "champ bailey", "steve atwater", "earl thomas", "patrick peterson", "jalen ramsey",
+  "patrick surtain ii", "sauce gardner", "minkah fitzpatrick", "derwin james", "kyle hamilton",
+  "kenny clark", "jaire alexander", "quay walker", "devonte wyatt", "rashan gary",
+  "eric stokes", "darnell savage", "ha ha clinton-dix", "nick perry", "justin harrell",
+  "aj hawk", "a.j. hawk", "jamal reynolds", "bubba franks", "antuan edwards",
+  "vonnie holliday", "ross verba", "john michels", "craig newsome", "aaron taylor",
+  "wayne simmons", "terrell buckley", "tony mandarich", "sterling sharpe",
+  "will mcdonald iv", "jermaine johnson", "alijah vera-tucker", "mekhi becton",
+  "jamal adams", "darron lee", "leonard williams", "calvin pryor", "dee milliner",
+  "sheldon richardson", "quinton coples", "muhammad wilkerson", "kyle wilson",
+  "dustin keller", "d'brickashaw ferguson", "nick mangold", "jonathan vilma",
+  "bryan thomas", "santana moss", "chad pennington", "john abraham", "shaun ellis",
+  "keyshawn johnson", "joe namath", "anthony richardson", "will levis", "mac jones",
+  "justin fields", "trey lance", "dwayne haskins", "daniel jones", "josh rosen",
+  "mitchell trubisky", "deshaun watson", "paxton lynch", "jameis winston", "marcus mariota",
+  "blake bortles", "johnny manziel", "teddy bridgewater", "ej manuel", "andrew luck",
+  "robert griffin iii", "ryan tannehill", "brandon weeden", "jake locker", "blaine gabbert",
+  "christian ponder", "sam bradford", "tim tebow", "josh freeman", "jamarcus russell",
+  "brady quinn", "vince young", "matt leinart", "jason campbell", "jp losman",
+  "byron leftwich", "kyle boller", "rex grossman", "david carr", "joey harrington",
+  "patrick ramsey", "tim couch", "akili smith", "cade mcnown", "ryan leaf",
+  "jim druckenmiller", "kerry collins", "steve mcnair", "heath shuler", "trent dilfer",
+  "rick mirer", "david klingler", "tommy maddox", "dan mcguire", "todd marinovich",
+  "jeff george", "andre ware", "vinny testaverde", "kelly stouffer", "chris miller",
+  "jim everett", "chuck long", "bernie kosar", "todd blackledge", "tony eason",
+  "ken obrien", "art schlichter", "jim mcmahon", "rich campbell",
+]);
+
+const PASSING_4000_YARD_PLAYERS = new Set([
+  "patrick mahomes", "peyton manning", "eli manning", "aaron rodgers", "matthew stafford",
+  "josh allen", "philip rivers", "carson palmer", "jared goff", "baker mayfield",
+  "joe burrow", "trevor lawrence", "cj stroud", "c.j. stroud", "jordan love",
+  "cam newton", "daunte culpepper", "carson wentz", "alex smith", "vinny testaverde",
+  "drew bledsoe", "michael vick", "jay cutler", "sam darnold", "kirk cousins",
+  "tom brady", "drew brees", "dan marino", "kurt warner", "warren moon",
+  "dan fouts", "matt ryan", "ben roethlisberger", "justin herbert", "dak prescott",
+  "brock purdy", "caleb williams", "jayden daniels", "drake maye", "cam ward",
+  "shedeur sanders", "arch manning", "tua tagovailoa", "deshaun watson", "ryan tannehill",
+  "jameis winston", "andrew luck", "tony romo", "matt schaub", "marc bulger",
+  "trent green", "jeff garcia", "rich gannon", "steve beuerlein", "brad johnson",
+  "neil lomax", "bill kenney", "lynn dickey", "brian sipe", "joe namath",
+]);
+
+const HALL_OF_FAME_PLAYERS = new Set([
+  "brett favre", "bart starr", "reggie white", "james lofton", "charles woodson",
+  "leroy butler", "joe namath", "curtis martin", "darrelle revis", "ronnie lott",
+  "ed reed", "peyton manning", "tom brady", "drew brees", "dan marino",
+  "kurt warner", "warren moon", "dan fouts", "steve young", "joe montana",
+  "john elway", "troy aikman", "roger staubach", "terry bradshaw", "fran tarkenton",
+  "emmitt smith", "barry sanders", "walter payton", "eric dickerson", "jim brown",
+  "oj simpson", "o.j. simpson", "earl campbell", "marshall faulk", "jerome bettis",
+  "tony dorsett", "marcus allen", "john riggins", "franco harris", "gale sayers",
+  "jerry rice", "randy moss", "terrell owens", "cris carter", "calvin johnson",
+  "tim brown", "michael irvin", "steve largent", "andre reed", "tony gonzalez",
+  "shannon sharpe", "ozzie newsome", "mike ditka", "bruce smith", "michael strahan",
+  "lawrence taylor", "derrick thomas", "dwight freeney", "julius peppers", "demarcus ware",
+  "ray lewis", "brian urlacher", "mike singletary", "dick butkus", "jack lambert",
+  "junior seau", "derrick brooks", "patrick willis", "deion sanders", "rod woodson",
+  "troy polamalu", "champ bailey", "brian dawkins", "steve atwater", "john lynch",
+]);
+
+const PLAYER_FRANCHISE_MAP: Record<string, string[]> = {
+  "aaron rodgers": ["GNB", "NYJ"],
+  "brett favre": ["ATL", "GNB", "NYJ", "MIN"],
+  "jordan love": ["GNB"],
+  "clay matthews": ["GNB", "LAR"],
+  "kenny clark": ["GNB"],
+  "jaire alexander": ["GNB"],
+  "quay walker": ["GNB"],
+  "jordan morgan": ["GNB"],
+  "devonte wyatt": ["GNB"],
+  "rashan gary": ["GNB"],
+  "bart starr": ["GNB"],
+  "reggie white": ["PHI", "GNB", "CAR"],
+  "james lofton": ["GNB", "LVR", "BUF", "LAR", "PHI"],
+  "charles woodson": ["LVR", "GNB"],
+  "leroy butler": ["GNB"],
+  "greg jennings": ["GNB", "MIN", "MIA"],
+  "ryan longwell": ["GNB", "MIN"],
+  "zarius smith": ["BAL", "GNB", "MIN", "CLE", "DET"],
+  "zadarius smith": ["BAL", "GNB", "MIN", "CLE", "DET"],
+  "darren sharper": ["GNB", "MIN", "NOR"],
+  "davante adams": ["GNB", "LVR", "NYJ"],
+  "aaron jones": ["GNB", "MIN"],
+  "sam darnold": ["NYJ", "CAR", "SFO", "MIN"],
+  "joe namath": ["NYJ", "LAR"],
+  "curtis martin": ["NWE", "NYJ"],
+  "darrelle revis": ["NYJ", "TAM", "NWE", "KC"],
+  "ronnie lott": ["SFO", "LVR", "NYJ"],
+  "ed reed": ["BAL", "HOU", "NYJ"],
+  "mark sanchez": ["NYJ", "PHI", "DAL", "WAS"],
+  "zach wilson": ["NYJ", "DEN"],
+  "quinnen williams": ["NYJ"],
+  "sauce gardner": ["NYJ"],
+  "garrett wilson": ["NYJ"],
+  "breece hall": ["NYJ"],
+  "olu fashanu": ["NYJ"],
+  "alijah vera tucker": ["NYJ"],
+  "ryan fitzpatrick": ["LAR", "CIN", "BUF", "TEN", "HOU", "NYJ", "TAM", "MIA", "WAS"],
+  "dalvin cook": ["MIN", "NYJ", "BAL", "DAL"],
+  "kirk cousins": ["WAS", "MIN", "ATL"],
+  "daunte culpepper": ["MIN", "MIA", "LVR", "DET"],
+  "warren moon": ["TEN", "MIN", "SEA", "KC"],
+  "randy moss": ["MIN", "LVR", "NWE", "TEN", "SFO"],
+  "cris carter": ["PHI", "MIN", "MIA"],
+  "adrian peterson": ["MIN", "ARI", "NOR", "WAS", "DET", "TEN", "SEA"],
+  "justin jefferson": ["MIN"],
+  "jj mccarthy": ["MIN"],
+  "j.j. mccarthy": ["MIN"],
+  "dallas turner": ["MIN"],
+  "caleb williams": ["CHI"],
+  "jayden daniels": ["WAS"],
+  "drake maye": ["NWE"],
+  "marvin harrison jr": ["ARI"],
+  "joe alt": ["LAC"],
+  "malik nabers": ["NYG"],
+  "jc latham": ["TEN"],
+  "michael penix jr": ["ATL"],
+  "rome odunze": ["CHI"],
+  "bo nix": ["DEN"],
+  "brock bowers": ["LVR"],
+  "taliese fuaga": ["NOR"],
+  "laiatu latu": ["IND"],
+  "byron murphy ii": ["SEA"],
+  "amarius mims": ["CIN"],
+  "jared verse": ["LAR"],
+  "troy fautanu": ["PIT"],
+  "chop robinson": ["MIA"],
+  "quinyon mitchell": ["PHI"],
+  "brian thomas jr": ["JAX"],
+  "terrion arnold": ["DET"],
+  "graham barton": ["TAM"],
+  "darius robinson": ["ARI"],
+  "xavier worthy": ["KC"],
+  "tyler guyton": ["DAL"],
+  "nate wiggins": ["BAL"],
+  "ricky pearsall": ["SFO"],
+  "xavier legette": ["CAR"],
+  "terrell owens": ["SFO", "PHI", "DAL", "BUF", "CIN"],
+  "jerry rice": ["SFO", "LVR", "SEA"],
+  "patrick mahomes": ["KC"],
+  "tom brady": ["NWE", "TAM"],
+  "drew brees": ["LAC", "NOR"],
+  "peyton manning": ["IND", "DEN"],
+  "eli manning": ["NYG"],
+  "matthew stafford": ["DET", "LAR"],
+  "josh allen": ["BUF"],
+  "lamar jackson": ["BAL"],
+  "joe burrow": ["CIN"],
+  "cj stroud": ["HOU"],
+  "c.j. stroud": ["HOU"],
+  "trevor lawrence": ["JAX"],
+  "justin herbert": ["LAC"],
+  "jalen hurts": ["PHI"],
+  "baker mayfield": ["CLE", "CAR", "LAR", "TAM"],
+  "kyler murray": ["ARI"],
+  "tua tagovailoa": ["MIA"],
+  "jared goff": ["LAR", "DET"],
+  "brock purdy": ["SFO"],
+  "dak prescott": ["DAL"],
+  "travis hunter": ["COL"],
+  "cam ward": ["MIA"],
+  "shedeur sanders": ["COL"],
+  "abdul carter": ["PSU"],
+  "ashton jeanty": ["BSU"],
+  "arch manning": ["TEX"],
+  "nico iamaleava": ["TEN"],
+  "jeremiah smith": ["OSU"],
+  "ryan williams": ["ALA"],
+};
+
+function isPlayerValidForCriterion(player: SearchPlayerItem, criterion: GridCriterion): boolean {
+  const cType = criterion.type;
+  const cId = criterion.criterion_id || "";
+  const params = (criterion.parameters || {}) as Record<string, unknown>;
+  const cleanName = player.name.toLowerCase().trim();
+  const normalizedName = cleanName.replace(/[\.\-]/g, " ").replace(/\s+/g, " ");
+  const cleanId = player.id.toLowerCase().trim();
+
+  // 1. DRAFT ROUND (e.g. 1st Round Pick)
+  if (cType === "DRAFT_ROUND" || cId.includes("DRAFT_RD1") || cId.includes("DRAFT")) {
+    const round = (params.round as number) || 1;
+    if (round === 1) {
+      return (
+        ROUND_1_DRAFT_PICKS.has(cleanName) ||
+        ROUND_1_DRAFT_PICKS.has(normalizedName) ||
+        ROUND_1_DRAFT_PICKS.has(cleanId) ||
+        cleanId.startsWith("draft2024-") ||
+        cleanId.startsWith("draft2025-") ||
+        cleanId.startsWith("draft2026-")
+      );
+    }
+  }
+
+  // 2. FRANCHISE
+  if (cType === "FRANCHISE" || cId.startsWith("FRAN_")) {
+    const franId = ((params.franchise_id as string) || cId.replace("FRAN_", "")).toUpperCase();
+    const franchises =
+      PLAYER_FRANCHISE_MAP[cleanName] ||
+      PLAYER_FRANCHISE_MAP[normalizedName] ||
+      PLAYER_FRANCHISE_MAP[cleanId] ||
+      [];
+    return franchises.includes(franId);
+  }
+
+  // 3. STAT SEASON (e.g. 4,000+ pass yds)
+  if (cType === "STAT_SEASON" || cId.includes("STAT_PASS_4000") || cId.includes("PASS_4000")) {
+    return (
+      PASSING_4000_YARD_PLAYERS.has(cleanName) ||
+      PASSING_4000_YARD_PLAYERS.has(normalizedName) ||
+      PASSING_4000_YARD_PLAYERS.has(cleanId)
+    );
+  }
+
+  // 4. ACCOLADE (e.g. Hall of Fame)
+  if (cType === "ACCOLADE" || cId.includes("ACCOLADE_HOF") || cId.includes("HOF")) {
+    return (
+      HALL_OF_FAME_PLAYERS.has(cleanName) ||
+      HALL_OF_FAME_PLAYERS.has(normalizedName) ||
+      HALL_OF_FAME_PLAYERS.has(cleanId)
+    );
+  }
+
+  return false;
+}
+
+// Fallback seed dictionary for historical matrix combinations
 const DEMO_CELL_ANSWERS: Record<string, string[]> = {
   // Row 0: Packers
-  "r0_c0": ["p-favre-bre01", "p-jennings-gre01", "p-longwell-rya01", "p-smith-zad01", "p-sharper-dar01"],
+  "r0_c0": ["p-favre-bre01", "p-jennings-gre01", "p-longwell-rya01", "p-smith-zad01", "p-sharper-dar01", "00-0033293"],
   "r0_c1": ["p-favre-bre01", "p-starr-bar01", "p-white-reg01", "p-lofton-jam01", "p-woodson-cha01", "p-butler-ler01"],
-  "r0_c2": ["00-0023459", "00-0036264", "p-matthews-cla01", "p-clark-ken01", "p-alexander-jai01", "p-walker-qua01"],
+  "r0_c2": [
+    "00-0023459", "00-0036264", "p-matthews-cla01", "p-clark-ken01", "p-alexander-jai01", "p-walker-qua01",
+    "draft2024-morgan-jor01", "p-favre-bre01", "p-starr-bar01", "p-lofton-jam01", "p-woodson-cha01"
+  ],
   // Row 1: Jets
   "r1_c0": ["p-favre-bre01", "p-darnold-sam01", "p-fitzpatrick-rya01", "00-0033897"],
   "r1_c1": ["p-namath-joe01", "p-martin-cur01", "p-revis-dar01", "p-favre-bre01", "p-lott-ron01", "p-reed-ed01"],
-  "r1_c2": ["p-namath-joe01", "p-revis-dar01", "p-sanchez-mar01", "p-darnold-sam01", "p-wilson-zac01", "00-0035235", "00-0037838", "00-0037836"],
+  "r1_c2": [
+    "p-namath-joe01", "p-revis-dar01", "p-sanchez-mar01", "p-darnold-sam01", "p-wilson-zac01",
+    "00-0035235", "00-0037838", "00-0037836", "draft2024-fashanu-olu01", "00-0023459"
+  ],
   // Row 2: 4,000+ Pass Yds
-  "r2_c0": ["00-0029604", "p-culpepper-dau01", "p-favre-bre01", "p-moon-war01"],
-  "r2_c1": ["p-manning-pey01", "p-brady-tom01", "p-favre-bre01", "p-brees-dre01", "p-marino-dan01", "p-warner-kur01", "p-moon-war01", "p-fouts-dan01"],
+  "r2_c0": ["00-0029604", "p-culpepper-dau01", "p-favre-bre01", "p-moon-war01", "p-darnold-sam01"],
+  "r2_c1": [
+    "p-manning-pey01", "p-brady-tom01", "p-favre-bre01", "p-brees-dre01", "p-marino-dan01",
+    "p-warner-kur01", "p-moon-war01", "p-fouts-dan01", "p-namath-joe01"
+  ],
   "r2_c2": [
     "00-0033873", "p-manning-pey01", "00-0023459", "p-stafford-mat01", "00-0034857",
     "p-manning-eli01", "p-rivers-phi01", "p-palmer-car01", "00-0033106", "00-0034844",
-    "00-0036442", "00-0036971", "00-0039163", "00-0036264"
+    "00-0036442", "00-0036971", "00-0039163", "00-0036264", "draft2024-williams-cal01",
+    "draft2024-daniels-jay01", "draft2024-maye-dra01", "draft2024-nix-bo01",
+    "draft2025-ward-cam01", "draft2025-sanders-she01", "draft2026-manning-arc01"
   ],
 };
 
@@ -187,10 +488,17 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
       // Backend offline: fallback to client validation
     }
 
-    // Offline / Demo validation fallback — match by ID first, then by name for cross-source IDs
+    // Offline / Demo validation fallback — dynamic rule evaluation + matrix dictionary
     if (!data) {
       const validAnswers = DEMO_CELL_ANSWERS[cellKey] || [];
-      const isValid = validAnswers.includes(player.id);
+      const rowCriterion = rows[selectedCell.r];
+      const colCriterion = columns[selectedCell.c];
+
+      const rowValid = rowCriterion ? isPlayerValidForCriterion(player, rowCriterion) : false;
+      const colValid = colCriterion ? isPlayerValidForCriterion(player, colCriterion) : false;
+
+      const isValid = (rowValid && colValid) || validAnswers.includes(player.id);
+
       data = {
         is_valid: isValid,
         row_index: selectedCell.r,
@@ -200,7 +508,7 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
           full_name: player.name,
           position: player.position,
         },
-        rarity_score: isValid ? Math.floor(Math.random() * 40) + 10 : null,
+        rarity_score: isValid ? Math.floor(Math.random() * 35) + 8 : null,
         reason: isValid ? null : `${player.name} does not satisfy both criteria for this cell.`,
       };
     }

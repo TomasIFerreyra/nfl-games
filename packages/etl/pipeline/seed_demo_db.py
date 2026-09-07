@@ -72,7 +72,7 @@ async def seed():
                 :primary_position, :draft_year, :draft_round, :draft_overall,
                 :college, :rookie_year, :final_year, :is_active, :headshot_url
             )
-            ON CONFLICT (gsis_id) DO UPDATE SET
+            ON CONFLICT (player_id) DO UPDATE SET
                 full_name = EXCLUDED.full_name,
                 first_name = EXCLUDED.first_name,
                 last_name = EXCLUDED.last_name,
@@ -82,14 +82,15 @@ async def seed():
                 is_active = EXCLUDED.is_active;
         """)
 
+        player_params = []
         for raw in data.get("players", []):
             p_id, name, pos, start_yr, end_yr, active = raw[0], raw[1], raw[2], raw[3], raw[4], bool(raw[5])
             parts = name.split(" ")
             first_name = parts[0]
             last_name = " ".join(parts[1:]) if len(parts) > 1 else parts[0]
-            gsis_id = p_id if p_id.startswith("00-") else f"GSIS-{p_id[:20]}"
-            pfr_id = p_id[:20] if p_id.startswith("p-") else None
-            await session.execute(stmt_player, {
+            gsis_id = p_id if p_id.startswith("00-") else None
+            pfr_id = p_id[:40] if p_id.startswith("p-") else None
+            player_params.append({
                 "player_id": p_id,
                 "gsis_id": gsis_id,
                 "pfr_id": pfr_id,
@@ -106,8 +107,13 @@ async def seed():
                 "is_active": active,
                 "headshot_url": None,
             })
+
+        chunk_size = 500
+        for i in range(0, len(player_params), chunk_size):
+            chunk = player_params[i : i + chunk_size]
+            await session.execute(stmt_player, chunk)
         await session.commit()
-        print(f"Seeded {len(data.get('players', []))} players.")
+        print(f"Seeded {len(player_params)} players.")
     await engine.dispose()
 
 if __name__ == "__main__":

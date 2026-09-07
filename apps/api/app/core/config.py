@@ -94,5 +94,10 @@ class Settings(BaseSettings):
     CDN_BASE_URL: str = "https://cdn.nflminigames.com"
     SEARCH_INDEX_CACHE_TTL: int = 86400
 
+    # Puzzle Generation Settings
+    AUTO_GENERATE_MISSING_PUZZLE: bool = True
+    PUZZLE_DISTRIBUTED_LOCK_TIMEOUT_SECS: int = 30
+
 
 settings = Settings()
+
