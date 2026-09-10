@@ -200,6 +200,186 @@ class PuzzlePipelineService:
         return puzzle
 
     @classmethod
+    async def generate_daily_connections(
+        cls,
+        session: AsyncSession,
+        target_date: date,
+        max_attempts: int = 50,
+    ) -> DailyPuzzle:
+        """
+        Generates, validates, and persists a Connections 4x4 puzzle for the target date.
+        Uses Knuth's Algorithm X exact cover solver to guarantee strictly one unique partition.
+        """
+        start_time = time.perf_counter()
+        from app.domain.connections_generator import ConnectionsGenerator
+
+        puzzle_number = cls.calculate_puzzle_number(target_date)
+        chosen_puzzle_data = await ConnectionsGenerator.generate_puzzle_data(
+            session=session,
+            target_date=target_date,
+            puzzle_number=puzzle_number,
+            max_attempts=max_attempts,
+        )
+
+        sol_hash = cls.compute_solution_hash(chosen_puzzle_data)
+
+        # Upsert into PostgreSQL
+        stmt = select(DailyPuzzle).where(
+            DailyPuzzle.target_date == target_date,
+            DailyPuzzle.game_type == "CONNECTIONS",
+        )
+        result = await session.execute(stmt)
+        puzzle = result.scalar_one_or_none()
+
+        if puzzle:
+            puzzle.puzzle_data = chosen_puzzle_data
+            puzzle.solution_hash = sol_hash
+            puzzle.puzzle_number = puzzle_number
+        else:
+            puzzle = DailyPuzzle(
+                target_date=target_date,
+                game_type="CONNECTIONS",
+                puzzle_number=puzzle_number,
+                puzzle_data=chosen_puzzle_data,
+                solution_hash=sol_hash,
+            )
+            session.add(puzzle)
+
+        await session.commit()
+        await session.refresh(puzzle)
+
+        duration_ms = (time.perf_counter() - start_time) * 1000
+        logger.info(
+            f"Pipeline generated Connections Puzzle #{puzzle_number} for {target_date} in {duration_ms:.2f}ms."
+        )
+        return puzzle
+
+    @classmethod
+    async def generate_daily_top10(
+        cls,
+        session: AsyncSession,
+        target_date: date,
+    ) -> DailyPuzzle:
+        """
+        Generates, validates, and persists a Top 10 Leaderboard puzzle for the target date.
+        """
+        start_time = time.perf_counter()
+        from app.domain.top10_generator import Top10Generator
+
+        puzzle_number = cls.calculate_puzzle_number(target_date)
+        chosen_puzzle_data = await Top10Generator.generate_puzzle_data(
+            session=session,
+            target_date=target_date,
+            puzzle_number=puzzle_number,
+        )
+
+        sol_hash = cls.compute_solution_hash(chosen_puzzle_data)
+
+        # Upsert into PostgreSQL
+        stmt = select(DailyPuzzle).where(
+            DailyPuzzle.target_date == target_date,
+            DailyPuzzle.game_type == "TOP10",
+        )
+        result = await session.execute(stmt)
+        puzzle = result.scalar_one_or_none()
+
+        if puzzle:
+            puzzle.puzzle_data = chosen_puzzle_data
+            puzzle.solution_hash = sol_hash
+            puzzle.puzzle_number = puzzle_number
+        else:
+            puzzle = DailyPuzzle(
+                target_date=target_date,
+                game_type="TOP10",
+                puzzle_number=puzzle_number,
+                puzzle_data=chosen_puzzle_data,
+                solution_hash=sol_hash,
+            )
+            session.add(puzzle)
+
+        await session.commit()
+        await session.refresh(puzzle)
+
+        duration_ms = (time.perf_counter() - start_time) * 1000
+        logger.info(
+            f"Pipeline generated Top 10 Puzzle #{puzzle_number} for {target_date} in {duration_ms:.2f}ms."
+        )
+        return puzzle
+
+    @classmethod
+    async def ensure_daily_puzzles(
+        cls,
+        session: AsyncSession,
+        target_date: Optional[date] = None,
+        redis_client: Optional[Redis] = None,
+    ) -> Dict[str, DailyPuzzle]:
+        """
+        Checks that all daily puzzles for target_date (defaulting to current UTC date) exist.
+        If any are missing, generates and commits them to the database immediately.
+        """
+        if target_date is None:
+            target_date = datetime.now(datetime.UTC).date() if hasattr(datetime, "UTC") else datetime.utcnow().date()
+
+        puzzles_map: Dict[str, DailyPuzzle] = {}
+
+        # 1. Ensure GRID puzzle
+        stmt_grid = select(DailyPuzzle).where(
+            DailyPuzzle.target_date == target_date,
+            DailyPuzzle.game_type == "GRID",
+        )
+        grid_res = (await session.execute(stmt_grid)).scalar_one_or_none()
+        if not grid_res:
+            try:
+                grid_res = await cls.generate_daily_grid(
+                    session=session,
+                    target_date=target_date,
+                    redis_client=redis_client,
+                )
+                logger.info(f"Startup check: Generated missing GRID puzzle for {target_date}.")
+            except Exception as exc:
+                logger.error(f"Failed to auto-generate GRID puzzle on startup: {exc}", exc_info=True)
+        if grid_res:
+            puzzles_map["GRID"] = grid_res
+
+        # 2. Ensure CONNECTIONS puzzle
+        stmt_conn = select(DailyPuzzle).where(
+            DailyPuzzle.target_date == target_date,
+            DailyPuzzle.game_type == "CONNECTIONS",
+        )
+        conn_res = (await session.execute(stmt_conn)).scalar_one_or_none()
+        if not conn_res:
+            try:
+                conn_res = await cls.generate_daily_connections(
+                    session=session,
+                    target_date=target_date,
+                )
+                logger.info(f"Startup check: Generated missing CONNECTIONS puzzle for {target_date}.")
+            except Exception as exc:
+                logger.error(f"Failed to auto-generate CONNECTIONS puzzle on startup: {exc}", exc_info=True)
+        if conn_res:
+            puzzles_map["CONNECTIONS"] = conn_res
+
+        # 3. Ensure TOP10 puzzle
+        stmt_top10 = select(DailyPuzzle).where(
+            DailyPuzzle.target_date == target_date,
+            DailyPuzzle.game_type == "TOP10",
+        )
+        top10_res = (await session.execute(stmt_top10)).scalar_one_or_none()
+        if not top10_res:
+            try:
+                top10_res = await cls.generate_daily_top10(
+                    session=session,
+                    target_date=target_date,
+                )
+                logger.info(f"Startup check: Generated missing TOP10 puzzle for {target_date}.")
+            except Exception as exc:
+                logger.error(f"Failed to auto-generate TOP10 puzzle on startup: {exc}", exc_info=True)
+        if top10_res:
+            puzzles_map["TOP10"] = top10_res
+
+        return puzzles_map
+
+    @classmethod
     async def acquire_distributed_lock(
         cls,
         redis_client: Optional[Redis],
@@ -245,3 +425,4 @@ class PuzzlePipelineService:
         except (RedisError, OSError) as exc:
             logger.warning(f"Redis distributed lock release error: {exc}")
             return False
+

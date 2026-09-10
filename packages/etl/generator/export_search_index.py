@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import gzip
 import json
 import logging
@@ -22,9 +22,22 @@ async def export_player_search_index(
     out_path = os.path.join(output_dir, "player_search_index.json.gz")
 
     query = text("""
-        SELECT player_id, full_name, primary_position, rookie_year, final_year, is_active
-        FROM players
-        ORDER BY is_active DESC, final_year DESC NULLS FIRST, full_name ASC;
+        SELECT 
+            p.player_id, 
+            p.full_name, 
+            p.primary_position, 
+            p.rookie_year, 
+            CASE 
+                WHEN p.is_active = FALSE AND p.final_year IS NULL THEN (
+                    SELECT MAX(s.season_year) 
+                    FROM player_team_stints s 
+                    WHERE s.player_id = p.player_id
+                )
+                ELSE p.final_year 
+            END AS final_year, 
+            p.is_active
+        FROM players p
+        ORDER BY p.is_active DESC, final_year DESC NULLS FIRST, p.full_name ASC;
     """)
 
     result = await session.execute(query)
@@ -43,7 +56,7 @@ async def export_player_search_index(
     ]
 
     payload = {
-        "version": datetime.utcnow().strftime("%Y.%m.%d.1"),
+        "version": datetime.now(timezone.utc).strftime("%Y.%m.%d.1"),
         "fields": ["id", "name", "pos", "start", "end", "active"],
         "players": player_records,
     }

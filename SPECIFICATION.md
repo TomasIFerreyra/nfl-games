@@ -28,22 +28,24 @@
 - **Attempt Budget:** 3 incorrect criteria assignment attempts before puzzle failure.
 
 #### 1.1.3 Connections 4x4
-- **Board Composition:** A 16-element set $S = \{e_1, e_2, \dots, e_{16}\}$ of NFL entities (typically players, coaches, or franchises).
-- **Partition Invariant:** There exists exactly one unique partition of $S$ into 4 disjoint subsets $\{G_1, G_2, G_3, G_4\}$ such that $|G_k| = 4$ for all $k \in \{1, 2, 3, 4\}$, and each $G_k$ satisfies a distinct thematic rule $T_k$.
-- **Difficulty Grading:** 4 tiers color-coded by complexity:
-  - *Tier 1 (Yellow):* Straightforward historical facts (e.g., "Heisman Trophy Winning Quarterbacks").
-  - *Tier 2 (Green):* Statistical thresholds (e.g., "5,000+ Passing Yards in a Single Season").
-  - *Tier 3 (Blue):* Common teammates, drafts, or coaching tree overlaps (e.g., "2004 NFL Draft Round 1 QBs").
-  - *Tier 4 (Purple):* Cryptic, wordplay, jersey number quirks, or obscure cross-franchise trivia (e.g., "Players with surnames that are US Capitals").
+- **Board Composition:** A 16-element set $S = \{e_1, e_2, \dots, e_{16}\}$ of NFL entities (players, coaches, or franchises).
+- **Partition Invariant:** There exists strictly one unique partition of $S$ into 4 disjoint subsets $\{G_1, G_2, G_3, G_4\}$ such that $|G_k| = 4$ for all $k \in \{1, 2, 3, 4\}$, and each $G_k$ satisfies a distinct thematic category rule $T_k$.
+- **Difficulty Grading:** 4 strictly graded tiers:
+  - *Tier 1 (Bronze / Straightforward):* Colleges (Alabama, Ohio State, LSU), draft year/class (1st Round picks, #1 Overall), single-team tenure, obvious hardware (Heisman Trophy, Pro Football Hall of Fame).
+  - *Tier 2 (Silver / Statistical Milestones):* Single-season or career metrics (5,000+ passing yds season, 1,500+ rushing yds, 100+ career sacks, 100+ career rushing TDs, 5+ Pro Bowls).
+  - *Tier 3 (Gold / Overlaps & Journeymen):* Multi-franchise dual tenures ("Played for both NE and NYJ", "Played for both GB and MIN"), draft round origins ("Drafted in 4th round or later / UDFA", Day 2 picks), hardware combinations (AP MVP, Super Bowl MVPs, OROY/DROY).
+  - *Tier 4 (Lombardi Platinum or Obsidian / Obscure & Quirky):* Demographic/name quirks ("First name Michael/Mike", "First name Chris"), unique pedigree/statistical quirks ("Drafted #1 Overall and won a Super Bowl", "Won both Heisman & NFL MVP").
 - **Attempt Budget:** 4 incorrect guess strikes before game over.
 - **"One Away" Heuristic:** If a submitted 4-element guess overlaps with any target group $G_k$ by exactly 3 elements ($|G_{\text{guess}} \cap G_k| = 3$), the system returns a non-penalizing advisory signal: `is_one_away: true`.
 
+
 #### 1.1.4 Top 10 Leaderboard Trivia
-- **Prompt:** An ordered statistical or historical query (e.g., "All-Time NFL Career Sacks Leaders").
-- **Board Representation:** 10 masked slots ranked 1 to 10.
-- **Guess Evaluation:** User submits player names. If player $P \in \text{Top10}$, reveal slot with rank, player name, and metric value.
-- **Strike Budget:** 3 incorrect strikes (players outside the top 10).
-- **Completion States:** Solved (all 10 revealed), Struck Out (3 strikes reached), or Surrendered. Final score weighted by rank discovery and strike penalty.
+- **Prompt:** An ordered statistical or historical query (e.g., "Top 10 Passing Touchdowns in a Single Season (2020s)" or "All-Time NFL Career Sacks Leaders").
+- **Board Representation:** 10 masked slots ranked #1 to #10.
+- **Guess Evaluation:** User submits player names one by one. If player $P \in \text{Top10}$ (or is tied at a valid rank $\le 10$), reveal slot with rank, official player headshot, player name, and formatted statistical value.
+- **Strike Budget:** Hard ceiling of 3 incorrect strikes (players outside the top 10).
+- **Repeated Guess Invariant:** Submitting a player already guessed in the current session does not burn a strike (`is_repeated: true`, `strikes_added: 0`).
+- **Completion States:** Solved (all 10 slots revealed), Struck Out (3 strikes reached), or Surrendered/Resigned. Final score weighted by rank discovery and strike penalty.
 
 ---
 
@@ -247,12 +249,26 @@
 - Caching: `Cache-Control: public, max-age=86400, immutable` (320 KB gzipped)
 
 #### 3.2.4 `POST /api/v1/connections/validate-group`
-- Body: `{ puzzle_id, selected_item_ids: [id1, id2, id3, id4] }`
-- Returns: `{ is_match, group: { group_id, tier, title, explanation, item_ids }, is_one_away }`
+- **Request Body:** `{ puzzle_id: UUID | string, selected_item_ids: string[4] }`
+- **Validation Constraints:**
+  - `selected_item_ids` must have exactly 4 items (`INVALID_ITEM_COUNT`, 422).
+  - `selected_item_ids` must contain distinct items without duplicates (`DUPLICATE_ITEMS_SUBMITTED`, 422).
+  - All items must exist on the active puzzle board (`INVALID_ITEM_ID`, 422).
+  - Target puzzle must exist with `game_type = 'CONNECTIONS'` (`PUZZLE_NOT_FOUND`, 404).
+- **Success Response (200 OK):**
+  - Match: `{ is_match: true, group: { group_id, tier, title, explanation, item_ids }, is_one_away: false, matched_count: 4 }`
+  - Incorrect (One Away): `{ is_match: false, group: null, is_one_away: true, matched_count: 3 }`
+  - Incorrect (No One Away): `{ is_match: false, group: null, is_one_away: false, matched_count: max_matched_count }`
 
 #### 3.2.5 `POST /api/v1/top10/guess`
-- Body: `{ puzzle_id, player_id }`
-- Returns: `{ is_hit, entry: { rank, player_id, player_name, metric_value, formatted_value }, strikes_added, current_strikes, is_game_over }`
+- **Request Body:** `{ puzzle_id: UUID | string, player_id: string, previous_guesses?: string[] }`
+- **Validation Constraints:**
+  - `puzzle_id` must reference an existing puzzle with `game_type = 'TOP10'` (`PUZZLE_NOT_FOUND`, 404).
+  - `player_id` must not be blank (`INVALID_PLAYER_ID`, 422).
+- **Success Response (200 OK):**
+  - **Hit:** `{ is_hit: true, entry: { rank, player_id, player_name, metric_value, formatted_value, headshot_url, active_years, primary_franchise, tied_player_ids }, strikes_added: 0 }`
+  - **Miss / Strike:** `{ is_hit: false, entry: null, strikes_added: 1, reason: "Player is not in the Top 10 for this category." }`
+  - **Repeated Guess:** `{ is_hit: false, entry: null, strikes_added: 0, is_repeated: true, reason: "Player has already been submitted in this session." }`
 
 ---
 
@@ -291,8 +307,42 @@ $$R^*(p, c) = \frac{n(p, c) + M \cdot \pi(p, c)}{N(c) + M} \times 100$$
 Where $M = 25$, $\pi(p, c) = \frac{1}{|S_c|}$ (uniform prior over historically valid answers).
 Guarantees smooth convergence and eliminates cold-start anomalies for early-day players.
 
-### 4.3 Connections 4x4 Uniqueness Verification
-Validated via Knuth's Algorithm X (Exact Cover). The generator verifies that across all valid 4-element groupings in the domain, there is **strictly one unique 4-way disjoint partition** of the 16 elements.
+### 4.3 Connections 4x4 Exact Cover Uniqueness Engine (Knuth's Algorithm X)
+1. **Deterministic Seeding Formula:**
+   $$\text{seed} = \text{int}(\text{target\_date.strftime}("\%Y\%m\%d")) + 7727$$
+2. **Category Selection & Tier Balancing:**
+   - Samples 1 category from Tier 1 (Bronze), 1 from Tier 2 (Silver), 1 from Tier 3 (Gold), and 1 from Tier 4 (Lombardi Platinum).
+   - Resolves matching player pools from PostgreSQL schema.
+   - Samples 4 candidate players per tier, injecting cross-category distractor tension (e.g., a Tier 2 player satisfying the Tier 1 criterion).
+3. **Exact Cover Solver Formulation:**
+   - Let universe $U = \{p_0, p_1, \dots, p_{15}\}$ be the 16 candidate board items ($|U| = 16$).
+   - For every active category $C_j$ in the taxonomy, find all valid 4-item subsets $S_{j, k} \subseteq C_j \cap U$ where $|S_{j, k}| = 4$.
+   - Represent each valid 4-element subset as a 16-bit integer mask $M \in [0, 2^{16}-1]$ with Hamming weight $w(M) = 4$.
+   - Execute Knuth's Algorithm X using Dancing Links (DLX) and Bitset-accelerated backtracking with Minimum Remaining Values (MRV) branch selection.
+4. **Strict Partition Uniqueness Invariant:**
+   - The puzzle board is valid if and only if the total count of disjoint exact covers is **strictly 1**:
+     $$\text{ExactCovers}(U) = \{ \{G_1, G_2, G_3, G_4\} \mid G_a \cap G_b = \emptyset \, \forall a \ne b, \; \bigcup_{k=1}^4 G_k = U \} \implies |\text{ExactCovers}(U)| = 1$$
+   - Any candidate board where distractors produce $\ge 2$ valid 4x4 partitions is **rejected as ambiguous**.
+   - Validated puzzles are persisted to `daily_puzzles` with JSONB payload and SHA-256 solution checksum.
+
+### 4.4 Top 10 Leaderboard Generation & Ranking Invariants
+1. **Deterministic Seeding Formula:**
+   $$\text{seed} = \text{int}(\text{target\_date.strftime}("\%Y\%m\%d")) + 4409$$
+2. **Archetype Family Rotation:**
+   Rotates through 4 discrete archetype families by modulo arithmetic on calendar day ordinal index:
+   - `SINGLE_SEASON_MILESTONE`: Post-2010/2015 individual season milestones.
+   - `CHRONOLOGICAL_ACCOLADE`: Reverse chronological major NFL awards (rank 1 = most recent season).
+   - `RECENT_DRAFT_PEDIGREE`: Strictly post-2015 draft classes.
+   - `ALL_TIME_HISTORICAL_LEADERBOARD`: Universal recognizable all-time statistical totals.
+3. **Strict Tie-Breaking Invariants:**
+   - Secondary tie-breaker evaluates:
+     1. Fewer games played in season/career (higher efficiency per appearance),
+     2. Secondary statistical criteria,
+     3. Chronological recency.
+   - All players sharing the exact qualifying metric threshold at a rank boundary $\le 10$ are indexed in `tied_player_ids` and are evaluated as valid hits.
+4. **Validation Performance Guarantee:**
+   Evaluates player guesses in $O(1)$ against precomputed ranked slots with fuzzy normalization and duplicate guess deduplication.
+
 
 ---
 
@@ -309,3 +359,14 @@ Tracks active puzzle date, remaining guesses/strikes, revealed cells, and HMAC-S
 
 ### 5.3 ETL Ingestion Semantics
 Idempotent UPSERT statements on conflict with canonical NFL GSIS identifiers. Staging -> Reconciler -> Relational DB -> CDN static search catalog deployment.
+
+### 5.4 Player Catalog & Search Index Specification
+- **Canonical Career Span Rules:**
+  - `rookie_year`: Sourced from nflverse canonical `rookie_season` or `draft_year`, falling back to minimum season year in historical franchise stints.
+  - `final_year`: Sourced from canonical retirement/last active season metadata. For active players, `final_year = NULL` and `is_active = TRUE`.
+  - Inactive Player Stint Fallback: If an inactive/retired player has `final_year IS NULL`, search index serialization dynamically evaluates `final_year = MAX(season_year)` across all regular season stints (`player_team_stints`).
+- **Frontend Display Contract (`PlayerSearchModal`):**
+  - Active (`is_active === true`): `${rookie_year} - Present`
+  - Retired (`is_active === false` and `final_year != null`): `${rookie_year} - ${final_year}`
+  - Guardrail (`is_active === false` and `final_year == null`): `${rookie_year} - Unknown`
+

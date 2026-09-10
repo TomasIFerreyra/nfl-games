@@ -1,5 +1,5 @@
 import asyncio
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 import logging
 import random
 from typing import Any, Dict, Optional
@@ -61,7 +61,11 @@ async def get_daily_puzzle(
             detail=f"Invalid game type '{game_type}'. Must be one of: grid, reverse-grid, connections, top10.",
         )
 
-    query_date = target_date or datetime.now(datetime.UTC).date() if hasattr(datetime, "UTC") else datetime.utcnow().date()
+    if target_date is not None:
+        query_date = target_date
+    else:
+        query_date = datetime.now(timezone.utc).date()
+
 
     puzzle: Optional[DailyPuzzle] = None
 
@@ -91,7 +95,7 @@ async def get_daily_puzzle(
                 puzzle = None  # Force JIT to regenerate
 
     # If puzzle is missing (or force_regenerate is requested), trigger JIT lazy generation
-    if (not puzzle or force_regenerate) and normalized_type == "GRID":
+    if (not puzzle or force_regenerate) and normalized_type in {"GRID", "CONNECTIONS", "TOP10"}:
         if settings.AUTO_GENERATE_MISSING_PUZZLE or force_regenerate:
             lock_key = f"puzzle:lock:{normalized_type}:{query_date}"
             lock_token = None
@@ -114,11 +118,22 @@ async def get_daily_puzzle(
                     puzzle = result.scalar_one_or_none()
 
                 if not puzzle or force_regenerate:
-                    puzzle = await PuzzlePipelineService.generate_daily_grid(
-                        session=session,
-                        target_date=query_date,
-                        redis_client=redis_client,
-                    )
+                    if normalized_type == "GRID":
+                        puzzle = await PuzzlePipelineService.generate_daily_grid(
+                            session=session,
+                            target_date=query_date,
+                            redis_client=redis_client,
+                        )
+                    elif normalized_type == "CONNECTIONS":
+                        puzzle = await PuzzlePipelineService.generate_daily_connections(
+                            session=session,
+                            target_date=query_date,
+                        )
+                    elif normalized_type == "TOP10":
+                        puzzle = await PuzzlePipelineService.generate_daily_top10(
+                            session=session,
+                            target_date=query_date,
+                        )
             finally:
                 if lock_token and redis_client is not None:
                     await PuzzlePipelineService.release_distributed_lock(
@@ -132,6 +147,7 @@ async def get_daily_puzzle(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Daily puzzle for game mode '{game_type}' on date '{query_date}' has not been published.",
         )
+
 
     # Sanitize payload based on game type
     raw_data: Dict[str, Any] = puzzle.puzzle_data

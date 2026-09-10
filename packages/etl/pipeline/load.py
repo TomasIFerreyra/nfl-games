@@ -91,6 +91,11 @@ class NFLDataLoader:
                 first_name = EXCLUDED.first_name,
                 last_name = EXCLUDED.last_name,
                 primary_position = EXCLUDED.primary_position,
+                draft_year = COALESCE(EXCLUDED.draft_year, players.draft_year),
+                draft_round = COALESCE(EXCLUDED.draft_round, players.draft_round),
+                draft_overall = COALESCE(EXCLUDED.draft_overall, players.draft_overall),
+                college = COALESCE(EXCLUDED.college, players.college),
+                rookie_year = LEAST(players.rookie_year, EXCLUDED.rookie_year),
                 final_year = EXCLUDED.final_year,
                 is_active = EXCLUDED.is_active,
                 headshot_url = COALESCE(EXCLUDED.headshot_url, players.headshot_url);

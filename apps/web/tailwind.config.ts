@@ -16,11 +16,13 @@ const config: Config = {
         "nfl-blue": "#013369",
         "nfl-red": "#D50A0A",
         tier: {
-          yellow: "#FBBF24",
-          green: "#34D399",
-          blue: "#60A5FA",
-          purple: "#A78BFA",
+          bronze: "#CD7F32",
+          silver: "#E2E8F0",
+          gold: "#F59E0B",
+          platinum: "#0F172A",
+          obsidian: "#090D16",
         },
+
       },
     },
   },

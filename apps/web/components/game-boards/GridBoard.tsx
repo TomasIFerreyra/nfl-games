@@ -7,6 +7,7 @@ import { SearchPlayerItem } from "@/lib/search/playerSearch";
 import { GameStateManager } from "@/lib/storage/gameState";
 import { CheckCircle2, AlertCircle, RotateCcw } from "lucide-react";
 import { getTeamLogoUrl } from "@/lib/teamLogos";
+import { PlayerTile } from "@/components/PlayerTile";
 
 const CriterionHeaderCell: React.FC<{ criterion: GridCriterion }> = ({ criterion }) => {
   const [imgError, setImgError] = useState(false);
@@ -376,6 +377,8 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
   const [cells, setCells] = useState<Record<string, {
     player_id: string;
     player_name: string;
+    position?: string | null;
+    headshot_url?: string | null;
     is_correct: boolean;
     rarity_score: number;
   } | null>>({});
@@ -525,6 +528,8 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
       nextCells[cellKey] = {
         player_id: player.id,
         player_name: player.name,
+        position: player.position || data.player?.position || null,
+        headshot_url: data.player?.headshot_url || null,
         is_correct: true,
         rarity_score: data.rarity_score || 35.0,
       };
@@ -627,34 +632,33 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
               const cellData = cells[cellKey];
               const isFilled = Boolean(cellData);
 
-              return (
+              return isFilled && cellData ? (
+                <div key={cellKey} className="aspect-square w-full">
+                  <PlayerTile
+                    name={cellData.player_name}
+                    playerId={cellData.player_id}
+                    position={cellData.position}
+                    headshotUrl={cellData.headshot_url}
+                    rarityScore={cellData.rarity_score}
+                    variant="grid"
+                    disabled
+                  />
+                </div>
+              ) : (
                 <button
                   key={cellKey}
-                  disabled={isFilled || guessesRemaining <= 0 || isValidating}
+                  type="button"
+                  disabled={guessesRemaining <= 0 || isValidating}
                   onClick={() => handleCellClick(rIdx, cIdx)}
-                  className={`aspect-square rounded-xl border p-1.5 sm:p-2.5 flex flex-col items-center justify-center text-center transition-all duration-150 relative overflow-hidden group ${
-                    isFilled
-                      ? "bg-emerald-950/40 border-emerald-500/50 shadow-inner text-white"
-                      : guessesRemaining <= 0
+                  className={`aspect-square w-full rounded-xl border p-1.5 sm:p-2.5 flex flex-col items-center justify-center text-center transition-all duration-200 relative overflow-hidden group ${
+                    guessesRemaining <= 0
                       ? "bg-surface/20 border-border/40 text-gray-600 cursor-not-allowed"
                       : "bg-surface border-border hover:border-nfl-blue hover:bg-surface-raised cursor-pointer hover:shadow-md"
                   }`}
                 >
-                  {isFilled ? (
-                    <>
-                      <div className="text-[11px] sm:text-xs md:text-sm font-bold text-white line-clamp-2 leading-tight px-0.5">
-                        {cellData?.player_name}
-                      </div>
-                      <div className="text-[9px] sm:text-[10px] md:text-xs font-semibold text-emerald-400 mt-1 flex items-center space-x-0.5 sm:space-x-1 bg-emerald-900/50 border border-emerald-500/30 px-1.5 py-0.5 rounded-full">
-                        <CheckCircle2 className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0" />
-                        <span>{cellData?.rarity_score}%</span>
-                      </div>
-                    </>
-                  ) : (
-                    <span className="text-xl sm:text-2xl text-gray-500 font-light group-hover:text-blue-400 transition-colors">
-                      +
-                    </span>
-                  )}
+                  <span className="text-xl sm:text-2xl text-gray-500 font-light group-hover:text-blue-400 group-hover:scale-125 transition-transform duration-200">
+                    +
+                  </span>
                 </button>
               );
             })}

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { ConnectionsItem, ConnectionsGroup, ConnectionsValidateResponse } from "@nfl-games/contracts";
 import { GameStateManager } from "@/lib/storage/gameState";
 import { Shuffle, AlertTriangle, CheckCircle2, RotateCcw, Flag } from "lucide-react";
+import { PlayerTile } from "@/components/PlayerTile";
 
 interface ConnectionsBoardProps {
   puzzleId: string;
@@ -286,15 +287,34 @@ export const ConnectionsBoard: React.FC<ConnectionsBoardProps> = ({ puzzleId, it
   const getTierBadgeStyle = (tier: number) => {
     switch (tier) {
       case 1:
-        return "bg-amber-400 text-black border border-amber-300";
+        // Tier 1: Bronze (Straightforward)
+        return "bg-gradient-to-r from-[#78350F] via-[#92400E] to-[#B45309] text-amber-100 border border-amber-500/60 shadow-amber-950/40";
       case 2:
-        return "bg-emerald-500 text-white border border-emerald-400";
+        // Tier 2: Silver (Statistical Milestones)
+        return "bg-gradient-to-r from-slate-200 via-slate-300 to-slate-400 text-slate-950 border border-slate-100 shadow-slate-900/40";
       case 3:
-        return "bg-blue-500 text-white border border-blue-400";
+        // Tier 3: Gold (Overlaps & Journeymen)
+        return "bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-yellow-950 border border-yellow-200 shadow-yellow-900/30";
       case 4:
-        return "bg-purple-600 text-white border border-purple-400";
+        // Tier 4: Lombardi Platinum / Obsidian (Obscure & Quirky)
+        return "bg-gradient-to-r from-zinc-950 via-slate-900 to-zinc-950 text-slate-100 border-2 border-slate-300/80 shadow-[0_0_15px_rgba(203,213,225,0.25)] ring-1 ring-white/20";
       default:
         return "bg-gray-400 text-black";
+    }
+  };
+
+  const getTierLabel = (tier: number) => {
+    switch (tier) {
+      case 1:
+        return "🥉 Bronze";
+      case 2:
+        return "🥈 Silver";
+      case 3:
+        return "🥇 Gold";
+      case 4:
+        return "🏆 Lombardi Platinum";
+      default:
+        return "";
     }
   };
 
@@ -316,6 +336,11 @@ export const ConnectionsBoard: React.FC<ConnectionsBoardProps> = ({ puzzleId, it
               g.tier
             )}`}
           >
+            <div className="flex items-center justify-center gap-1.5 mb-0.5">
+              <span className="text-[10px] uppercase font-extrabold tracking-widest opacity-80">
+                {getTierLabel(g.tier)}
+              </span>
+            </div>
             <div className="text-xs uppercase font-black tracking-wider">{g.title}</div>
             <div className="text-[12px] font-medium opacity-95 mt-1">
               {g.item_ids
@@ -330,6 +355,7 @@ export const ConnectionsBoard: React.FC<ConnectionsBoardProps> = ({ puzzleId, it
           </div>
         ))}
       </div>
+
 
       {/* One-away or Error Alert */}
       {isOneAway && (
@@ -346,21 +372,21 @@ export const ConnectionsBoard: React.FC<ConnectionsBoardProps> = ({ puzzleId, it
 
       {/* 4x4 Grid of remaining items */}
       {!isGameOver && (
-        <div className="grid grid-cols-4 gap-2.5 w-full select-none mb-6">
+        <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full select-none mb-6">
           {activeItems.map((item) => {
             const isSelected = selectedIds.includes(item.item_id);
             return (
-              <button
+              <PlayerTile
                 key={item.item_id}
+                name={item.display_text}
+                playerId={item.item_id}
+                subtext={item.subtext}
+                headshotUrl={item.headshot_url}
+                position={item.position}
+                variant="connections"
+                isSelected={isSelected}
                 onClick={() => handleToggleSelect(item.item_id)}
-                className={`h-20 p-2 rounded-lg border flex flex-col items-center justify-center text-center font-bold text-xs transition-all ${
-                  isSelected
-                    ? "bg-gray-200 border-white text-black scale-95 shadow-lg"
-                    : "bg-surface border-border text-white hover:bg-surface-raised hover:border-gray-500"
-                }`}
-              >
-                <span className="line-clamp-2">{item.display_text}</span>
-              </button>
+              />
             );
           })}
         </div>

@@ -473,7 +473,15 @@ async def seed_historical_players():
             parts = name.split(" ", 1)
             first = parts[0]
             last = parts[1] if len(parts) > 1 else ""
-            final_year = None if rookie_year >= 2020 else (2024 if not is_hof else None)
+            if rookie_year >= 2020:
+                final_year = None
+                is_active = not is_hof
+            elif is_hof and hof_year:
+                final_year = max(rookie_year + 10, hof_year - 5)
+                is_active = False
+            else:
+                final_year = min(rookie_year + 14, 2023)
+                is_active = False
 
             # Check if player already exists by name
             check = await session.execute(

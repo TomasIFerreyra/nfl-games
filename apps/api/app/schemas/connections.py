@@ -11,7 +11,7 @@ class ConnectionsItem(BaseModel):
 
 class ConnectionsGroup(BaseModel):
     group_id: str
-    tier: int = Field(..., ge=1, le=4, description="1=Yellow, 2=Green, 3=Blue, 4=Purple")
+    tier: int = Field(..., ge=1, le=4, description="1=Bronze, 2=Silver, 3=Gold, 4=Lombardi Platinum / Obsidian")
     title: str
     item_ids: List[str] = Field(..., min_length=4, max_length=4)
     explanation: str

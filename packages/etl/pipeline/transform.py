@@ -97,13 +97,22 @@ class NFLDataTransformer:
         players_records: List[Dict[str, Any]] = []
 
         # Merge with ID map if present
+        id_info_map = {}
         pfr_map = {}
-        if not id_map_df.empty and "gsis_id" in id_map_df.columns and "pfr_id" in id_map_df.columns:
-            valid_ids = id_map_df.dropna(subset=["gsis_id", "pfr_id"])
-            pfr_map = dict(zip(valid_ids["gsis_id"], valid_ids["pfr_id"]))
+        if not id_map_df.empty:
+            for _, id_row in id_map_df.iterrows():
+                gid = id_row.get("gsis_id")
+                if pd.notna(gid) and str(gid).strip():
+                    gid_str = str(gid).strip()
+                    id_info_map[gid_str] = id_row
+                    raw_pfr = id_row.get("pfr_id")
+                    if pd.notna(raw_pfr):
+                        pfr_map[gid_str] = str(raw_pfr).strip()
 
         seen_pfr_ids = set()
         grouped = rosters.groupby("gsis_id")
+        current_year = datetime.datetime.now().year
+
         for gsis_id, group in grouped:
             first_row = group.iloc[0]
             full_name = str(first_row[name_col]).strip()
@@ -111,12 +120,71 @@ class NFLDataTransformer:
             first_name = name_parts[0]
             last_name = name_parts[1] if len(name_parts) > 1 else ""
 
-            rookie_year = int(group[season_col].min())
-            max_year = int(group[season_col].max())
-            is_active = bool(max_year >= datetime.datetime.now().year)
+            id_info = id_info_map.get(str(gsis_id))
+            stint_min_year = int(group[season_col].min())
+            stint_max_year = int(group[season_col].max())
+
+            # Canonical rookie year resolution
+            canonical_rookie = None
+            if id_info is not None:
+                raw_rs = id_info.get("rookie_season")
+                if pd.notna(raw_rs):
+                    try:
+                        canonical_rookie = int(raw_rs)
+                    except (ValueError, TypeError):
+                        pass
+                if canonical_rookie is None or canonical_rookie < 1920:
+                    raw_dy = id_info.get("draft_year")
+                    if pd.notna(raw_dy):
+                        try:
+                            canonical_rookie = int(raw_dy)
+                        except (ValueError, TypeError):
+                            pass
+
+            if canonical_rookie is None or canonical_rookie < 1920:
+                raw_dy = first_row.get("draft_year")
+                if pd.notna(raw_dy):
+                    try:
+                        canonical_rookie = int(raw_dy)
+                    except (ValueError, TypeError):
+                        pass
+
+            if canonical_rookie is not None and 1920 <= canonical_rookie <= current_year + 1:
+                rookie_year = min(canonical_rookie, stint_min_year)
+            else:
+                rookie_year = stint_min_year
+
+            # Canonical retirement and active status resolution
+            canonical_last = None
+            player_status = ""
+            if id_info is not None:
+                raw_ls = id_info.get("last_season")
+                if pd.notna(raw_ls):
+                    try:
+                        canonical_last = int(raw_ls)
+                    except (ValueError, TypeError):
+                        pass
+                raw_status = id_info.get("status")
+                if pd.notna(raw_status):
+                    player_status = str(raw_status).strip().upper()
+
+            # Player is active if playing in current season, unless explicitly retired/exempt
+            if player_status in ("RET", "EXE", "HON"):
+                is_active = False
+            elif stint_max_year >= current_year or (player_status == "ACT" and stint_max_year >= current_year - 1):
+                is_active = True
+            elif canonical_last and canonical_last >= current_year and player_status == "ACT":
+                is_active = True
+            else:
+                is_active = False
+
+            if is_active:
+                final_year = None
+            else:
+                final_year = max(stint_max_year, canonical_last) if canonical_last else stint_max_year
 
             # Safely resolve pfr_id without NaN string leaks
-            raw_pfr = pfr_map.get(gsis_id)
+            raw_pfr = pfr_map.get(str(gsis_id))
             if pd.isna(raw_pfr) or not raw_pfr:
                 raw_pfr = first_row.get("pfr_id")
             
@@ -128,6 +196,8 @@ class NFLDataTransformer:
                     seen_pfr_ids.add(pfr_id)
 
             raw_college = first_row.get("college")
+            if (pd.isna(raw_college) or not raw_college) and id_info is not None:
+                raw_college = id_info.get("college_name")
             college = None
             if pd.notna(raw_college):
                 clean_col = str(raw_college).strip()
@@ -135,11 +205,43 @@ class NFLDataTransformer:
                     college = clean_col[:100]
 
             raw_headshot = first_row.get("headshot_url")
+            if (pd.isna(raw_headshot) or not raw_headshot) and id_info is not None:
+                raw_headshot = id_info.get("headshot")
             headshot_url = None
             if pd.notna(raw_headshot):
                 clean_hs = str(raw_headshot).strip()
                 if clean_hs and clean_hs.lower() not in ("nan", "none"):
                     headshot_url = clean_hs[:255]
+
+            draft_year_val = None
+            raw_dy = first_row.get("draft_year")
+            if (pd.isna(raw_dy) or not raw_dy) and id_info is not None:
+                raw_dy = id_info.get("draft_year")
+            if pd.notna(raw_dy):
+                try:
+                    draft_year_val = int(raw_dy)
+                except (ValueError, TypeError):
+                    pass
+
+            draft_round_val = None
+            raw_dr = first_row.get("draft_round")
+            if (pd.isna(raw_dr) or not raw_dr) and id_info is not None:
+                raw_dr = id_info.get("draft_round")
+            if pd.notna(raw_dr):
+                try:
+                    draft_round_val = int(raw_dr)
+                except (ValueError, TypeError):
+                    pass
+
+            draft_pick_val = None
+            raw_dp = first_row.get("draft_number")
+            if (pd.isna(raw_dp) or not raw_dp) and id_info is not None:
+                raw_dp = id_info.get("draft_pick")
+            if pd.notna(raw_dp):
+                try:
+                    draft_pick_val = int(raw_dp)
+                except (ValueError, TypeError):
+                    pass
 
             players_records.append({
                 "player_id": str(uuid.uuid4()),
@@ -149,12 +251,12 @@ class NFLDataTransformer:
                 "first_name": first_name,
                 "last_name": last_name,
                 "primary_position": str(first_row.get(pos_col, "ATH"))[:10],
-                "draft_year": int(first_row.get("draft_year")) if pd.notna(first_row.get("draft_year")) else None,
-                "draft_round": int(first_row.get("draft_round")) if pd.notna(first_row.get("draft_round")) else None,
-                "draft_overall": int(first_row.get("draft_number")) if pd.notna(first_row.get("draft_number")) else None,
+                "draft_year": draft_year_val,
+                "draft_round": draft_round_val,
+                "draft_overall": draft_pick_val,
                 "college": college,
                 "rookie_year": rookie_year,
-                "final_year": None if is_active else max_year,
+                "final_year": final_year,
                 "is_active": is_active,
                 "headshot_url": headshot_url,
             })

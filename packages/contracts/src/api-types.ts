@@ -73,6 +73,8 @@ export interface ConnectionsItem {
   item_id: string;
   display_text: string;
   subtext?: string | null;
+  headshot_url?: string | null;
+  position?: string | null;
 }
 
 export interface ConnectionsGroup {
@@ -106,8 +108,10 @@ export interface Top10Entry {
   player_name: string;
   metric_value: number;
   formatted_value: string;
+  headshot_url?: string | null;
   active_years?: string | null;
   primary_franchise?: string | null;
+  tied_player_ids?: string[] | null;
 }
 
 export interface Top10PuzzleData {
@@ -122,6 +126,7 @@ export interface Top10PuzzleData {
 export interface Top10GuessRequest {
   puzzle_id: string;
   player_id: string;
+  previous_guesses?: string[];
 }
 
 export interface Top10GuessResponse {
@@ -132,6 +137,8 @@ export interface Top10GuessResponse {
   current_strikes?: number | null;
   max_strikes?: number;
   is_game_over?: boolean;
+  is_repeated?: boolean;
+  reason?: string | null;
   total_found?: number | null;
   remaining_unrevealed?: number | null;
 }
@@ -143,6 +150,18 @@ export interface DailyPuzzleResponse {
   game_type: "grid" | "reverse_grid" | "connections" | "top10";
   puzzle_data: Record<string, unknown>;
   created_at: string;
+}
+
+// Top 10 Isolated User Progression Schema
+export interface Top10UserState {
+  puzzle_id: string;
+  revealed_slots: Record<number, Top10Entry>; // rank -> player details returned by API
+  strikes: number;
+  strikes_remaining: number;
+  submitted_player_ids: string[];
+  missed_guesses: string[];
+  is_completed: boolean;
+  is_resigned?: boolean;
 }
 
 // Client LocalStorage Schema (nfl_games_state_v1)
@@ -176,9 +195,13 @@ export interface ClientLocalStorageState {
       active_date: string;
       puzzle_id: string;
       strikes_remaining: number;
+      strikes?: number;
       is_completed: boolean;
       revealed_ranks: number[];
+      revealed_slots?: Record<number, Top10Entry>;
       missed_guesses: string[];
+      submitted_player_ids?: string[];
+      is_resigned?: boolean;
     };
   };
   streaks: {

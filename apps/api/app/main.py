@@ -12,15 +12,31 @@ from app.core.redis import close_redis_pool, init_redis_pool
 from app.db.session import close_db_connection
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan context manager handling startup and teardown."""
     # Startup tasks (connections, caches, etc.)
     await init_redis_pool()
+
+    # Automatically ensure daily puzzles for today exist upon startup
+    try:
+        from app.db.session import async_session_scope
+        from app.services.puzzle_pipeline import PuzzlePipelineService
+        async with async_session_scope() as session:
+            await PuzzlePipelineService.ensure_daily_puzzles(session)
+    except Exception as exc:
+        logger.warning(f"Startup daily puzzle verification check failed or skipped: {exc}")
+
     yield
     # Shutdown tasks
     await close_redis_pool()
     await close_db_connection()
+
 
 
 app = FastAPI(

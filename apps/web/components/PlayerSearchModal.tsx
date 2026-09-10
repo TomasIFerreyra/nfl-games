@@ -35,6 +35,16 @@ function fallbackSearch(query: string, limit: number = 10): SearchPlayerItem[] {
   return scored.slice(0, limit).map((s) => s.item);
 }
 
+export function formatPlayerCareerSpan(player: { startYear: number; endYear: number | null; isActive: boolean }): string {
+  if (player.isActive) {
+    return `${player.startYear} - Present`;
+  }
+  if (player.endYear) {
+    return `${player.startYear} - ${player.endYear}`;
+  }
+  return `${player.startYear} - Unknown`;
+}
+
 interface PlayerSearchModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -210,7 +220,7 @@ export const PlayerSearchModal: React.FC<PlayerSearchModalProps> = ({
                         )}
                       </div>
                       <div className="text-xs text-gray-400">
-                        {player.position} • {player.startYear} - {player.endYear || "Present"}
+                        {player.position} • {formatPlayerCareerSpan(player)}
                       </div>
                     </div>
                   </div>

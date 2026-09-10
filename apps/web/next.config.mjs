@@ -2,6 +2,38 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@nfl-games/contracts"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "a.espncdn.com",
+      },
+      {
+        protocol: "https",
+        hostname: "static.www.nfl.com",
+      },
+      {
+        protocol: "https",
+        hostname: "static.nfl.com",
+      },
+      {
+        protocol: "https",
+        hostname: "sleepercdn.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.sportslogos.net",
+      },
+      {
+        protocol: "https",
+        hostname: "raw.githubusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "upload.wikimedia.org",
+      },
+    ],
+  },
   async rewrites() {
     return [
       {

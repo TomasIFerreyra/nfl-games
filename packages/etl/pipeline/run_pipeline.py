@@ -45,9 +45,22 @@ async def export_client_search_index(session, out_dir: str = "apps/web/public"):
     out_json = os.path.join(out_dir, "player_search_index.json")
 
     query = text("""
-        SELECT player_id, full_name, primary_position, rookie_year, final_year, is_active
-        FROM players
-        ORDER BY is_active DESC, final_year DESC NULLS FIRST, full_name ASC;
+        SELECT 
+            p.player_id, 
+            p.full_name, 
+            p.primary_position, 
+            p.rookie_year, 
+            CASE 
+                WHEN p.is_active = FALSE AND p.final_year IS NULL THEN (
+                    SELECT MAX(s.season_year) 
+                    FROM player_team_stints s 
+                    WHERE s.player_id = p.player_id
+                )
+                ELSE p.final_year 
+            END AS final_year, 
+            p.is_active
+        FROM players p
+        ORDER BY p.is_active DESC, final_year DESC NULLS FIRST, p.full_name ASC;
     """)
 
     result = await session.execute(query)
@@ -66,7 +79,7 @@ async def export_client_search_index(session, out_dir: str = "apps/web/public"):
     ]
 
     payload = {
-        "version": "2026.09.04.scraped",
+        "version": datetime.datetime.now(datetime.timezone.utc).strftime("%Y.%m.%d.canonical"),
         "fields": ["id", "name", "pos", "start", "end", "active"],
         "players": player_records,
     }
