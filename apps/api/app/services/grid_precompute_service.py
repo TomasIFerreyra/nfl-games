@@ -12,7 +12,8 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from app.db.models.player import Player, PlayerTeamStint
 from app.db.models.puzzle import DailyPuzzle
-from app.db.models.stats import Accolade, PlayerSeasonStat
+from app.db.models.stats import Accolade, PlayerCareerStat, PlayerSeasonStat
+from app.domain.criteria_registry import CONFERENCE_MAP, DIVISION_MAP
 from app.domain.player_catalog import (
     CANONICAL_COLLEGE_MAP,
     CANONICAL_FRANCHISE_MAP,
@@ -44,7 +45,7 @@ class GridPrecomputeService:
         """
         Executes a single relational query resolving all qualifying player_ids for a given criterion.
         """
-        c_type = criterion.get("type", "").upper()
+        c_type = str(criterion.get("type", "")).upper()
         c_id = criterion.get("criterion_id", "")
         params = criterion.get("parameters") or {}
         qualifying_ids: Set[str] = set()
@@ -68,24 +69,98 @@ class GridPrecomputeService:
                 if franchise_id in franchises:
                     qualifying_ids.add(player_key)
 
-        # 2. SINGLE SEASON STAT Criterion
+        # 2. DIVISION / CONFERENCE Criterion
+        elif c_type == "DIVISION" or c_id.startswith("DIV_"):
+            div_id = params.get("division_id") or c_id
+            franchise_ids = params.get("franchise_ids") or DIVISION_MAP.get(div_id, [])
+            if franchise_ids:
+                stmt = (
+                    select(PlayerTeamStint.player_id)
+                    .where(
+                        PlayerTeamStint.franchise_id.in_(franchise_ids),
+                        PlayerTeamStint.games_played >= 1,
+                    )
+                    .distinct()
+                )
+                result = await session.execute(stmt)
+                qualifying_ids.update(r[0] for r in result.fetchall())
+
+                for player_key, franchises in CANONICAL_FRANCHISE_MAP.items():
+                    if any(f in franchise_ids for f in franchises):
+                        qualifying_ids.add(player_key)
+
+        elif c_type == "CONFERENCE" or c_id.startswith("CONF_"):
+            conf_id = c_id
+            franchise_ids = params.get("franchise_ids") or CONFERENCE_MAP.get(conf_id, [])
+            if franchise_ids:
+                stmt = (
+                    select(PlayerTeamStint.player_id)
+                    .where(
+                        PlayerTeamStint.franchise_id.in_(franchise_ids),
+                        PlayerTeamStint.games_played >= 1,
+                    )
+                    .distinct()
+                )
+                result = await session.execute(stmt)
+                qualifying_ids.update(r[0] for r in result.fetchall())
+
+                for player_key, franchises in CANONICAL_FRANCHISE_MAP.items():
+                    if any(f in franchise_ids for f in franchises):
+                        qualifying_ids.add(player_key)
+
+        # 3. JOURNEYMAN Criterion
+        elif c_type == "JOURNEYMAN" or "JOURNEYMAN" in c_id:
+            min_f = params.get("min_franchises", 3)
+            stmt = (
+                select(PlayerTeamStint.player_id)
+                .where(PlayerTeamStint.games_played >= 1)
+                .group_by(PlayerTeamStint.player_id)
+                .having(func.count(func.distinct(PlayerTeamStint.franchise_id)) >= min_f)
+            )
+            result = await session.execute(stmt)
+            qualifying_ids.update(r[0] for r in result.fetchall())
+
+            # Catalog lookup
+            for player_key, franchises in CANONICAL_FRANCHISE_MAP.items():
+                if len(set(franchises)) >= min_f:
+                    qualifying_ids.add(player_key)
+
+        # 4. SINGLE SEASON STAT Criterion
         elif c_type == "STAT_SEASON" or "STAT_" in c_id or "PASS_4000" in c_id:
             stat_name = params.get("stat_name")
             threshold = params.get("threshold", 0)
 
             if not stat_name:
-                if "PASS_4000" in c_id:
+                if "PASS_5000" in c_id:
+                    stat_name, threshold = "passing_yards", 5000
+                elif "PASS_4000" in c_id:
                     stat_name, threshold = "passing_yards", 4000
                 elif "PASS_3000" in c_id:
                     stat_name, threshold = "passing_yards", 3000
+                elif "RUSH_1500" in c_id:
+                    stat_name, threshold = "rushing_yards", 1500
                 elif "RUSH_1000" in c_id:
                     stat_name, threshold = "rushing_yards", 1000
+                elif "REC_1500" in c_id:
+                    stat_name, threshold = "receiving_yards", 1500
                 elif "REC_1000" in c_id:
                     stat_name, threshold = "receiving_yards", 1000
+                elif "SACK_15" in c_id:
+                    stat_name, threshold = "sacks", 15.0
                 elif "SACK_10" in c_id:
                     stat_name, threshold = "sacks", 10.0
                 elif "PASS_TD_30" in c_id:
                     stat_name, threshold = "passing_tds", 30
+                elif "RUSH_TD_15" in c_id:
+                    stat_name, threshold = "rushing_tds", 15
+                elif "RUSH_TD_10" in c_id:
+                    stat_name, threshold = "rushing_tds", 10
+                elif "REC_TD_10" in c_id:
+                    stat_name, threshold = "receiving_tds", 10
+                elif "REC_100" in c_id:
+                    stat_name, threshold = "receptions", 100
+                elif "INT_6" in c_id:
+                    stat_name, threshold = "defensive_interceptions", 6
 
             column_attr = getattr(PlayerSeasonStat, stat_name, None) if stat_name else None
             if column_attr is not None:
@@ -97,11 +172,11 @@ class GridPrecomputeService:
                 result = await session.execute(stmt)
                 qualifying_ids.update(r[0] for r in result.fetchall())
 
-            # Supplement with canonical catalog data for all stat types
+            # Supplement with canonical catalog data
             if stat_name == "passing_yards" and threshold >= 4000:
                 qualifying_ids.update(CANONICAL_PASSING_4000_YARD_PLAYERS)
             elif stat_name == "passing_yards" and threshold >= 3000:
-                qualifying_ids.update(CANONICAL_PASSING_4000_YARD_PLAYERS)  # superset
+                qualifying_ids.update(CANONICAL_PASSING_4000_YARD_PLAYERS)
             elif stat_name == "rushing_yards" and threshold >= 1000:
                 qualifying_ids.update(CANONICAL_RUSH_1000_PLAYERS)
             elif stat_name == "receiving_yards" and threshold >= 1000:
@@ -109,10 +184,59 @@ class GridPrecomputeService:
             elif stat_name == "sacks" and threshold >= 10.0:
                 qualifying_ids.update(CANONICAL_SACK_10_PLAYERS)
             elif stat_name == "passing_tds" and threshold >= 30:
-                # 30+ TD passers are a subset of 4000-yard passers historically
                 qualifying_ids.update(CANONICAL_PASSING_4000_YARD_PLAYERS)
 
-        # 3. ACCOLADE Criterion
+        # 5. CAREER STAT Criterion
+        elif c_type == "STAT_CAREER" or c_id.startswith("CAREER_"):
+            stat_name = params.get("stat_name")
+            threshold = params.get("threshold", 0)
+
+            # 1. Try PlayerCareerStat table
+            career_col = getattr(PlayerCareerStat, stat_name, None) if stat_name else None
+            if career_col is not None:
+                try:
+                    stmt = select(PlayerCareerStat.player_id).where(career_col >= threshold).distinct()
+                    result = await session.execute(stmt)
+                    qualifying_ids.update(r[0] for r in result.fetchall())
+                except Exception:
+                    pass
+
+            # 2. Fallback: Aggregate from PlayerSeasonStat
+            season_col = getattr(PlayerSeasonStat, stat_name, None) if stat_name else None
+            if season_col is not None:
+                stmt = (
+                    select(PlayerSeasonStat.player_id)
+                    .group_by(PlayerSeasonStat.player_id)
+                    .having(func.sum(season_col) >= threshold)
+                )
+                result = await session.execute(stmt)
+                qualifying_ids.update(r[0] for r in result.fetchall())
+
+            if stat_name == "passing_yards" and threshold >= 40000:
+                qualifying_ids.update(CANONICAL_PASSING_4000_YARD_PLAYERS)
+            elif stat_name == "rushing_yards" and threshold >= 10000:
+                qualifying_ids.update(CANONICAL_RUSH_1000_PLAYERS)
+            elif stat_name == "receiving_yards" and threshold >= 10000:
+                qualifying_ids.update(CANONICAL_REC_1000_PLAYERS)
+
+        # 6. POSITIONAL QUIRK Criterion
+        elif c_type == "STAT_POSITIONAL" or c_id.startswith("POS_"):
+            pos = params.get("position")
+            stat_name = params.get("stat_name")
+            threshold = params.get("threshold", 0)
+
+            season_col = getattr(PlayerSeasonStat, stat_name, None) if stat_name else None
+            if season_col is not None and pos:
+                stmt = (
+                    select(PlayerSeasonStat.player_id)
+                    .join(Player, PlayerSeasonStat.player_id == Player.player_id)
+                    .where(Player.primary_position == pos, season_col >= threshold)
+                    .distinct()
+                )
+                result = await session.execute(stmt)
+                qualifying_ids.update(r[0] for r in result.fetchall())
+
+        # 7. ACCOLADE Criterion
         elif c_type == "ACCOLADE" or "ACCOLADE_" in c_id or "HOF" in c_id:
             accolade_type = params.get("accolade_type")
             if not accolade_type:
@@ -124,8 +248,18 @@ class GridPrecomputeService:
                     accolade_type = "FIRST_TEAM_ALL_PRO"
                 elif "MVP" in c_id:
                     accolade_type = "MVP"
+                elif "SUPER_BOWL_MVP" in c_id or "SB_MVP" in c_id:
+                    accolade_type = "SUPER_BOWL_MVP"
                 elif "SUPER_BOWL" in c_id:
                     accolade_type = "SUPER_BOWL_CHAMPION"
+                elif "OROY" in c_id:
+                    accolade_type = "OROY"
+                elif "DROY" in c_id:
+                    accolade_type = "DROY"
+                elif "CPOY" in c_id:
+                    accolade_type = "CPOY"
+                elif "WPMOTY" in c_id:
+                    accolade_type = "WPMOTY"
 
             if accolade_type:
                 stmt = (
@@ -139,17 +273,54 @@ class GridPrecomputeService:
             if accolade_type == "HALL_OF_FAME":
                 qualifying_ids.update(CANONICAL_HALL_OF_FAME_PLAYERS)
 
-        # 4. DRAFT ROUND Criterion
-        elif c_type == "DRAFT_ROUND" or "DRAFT_RD1" in c_id or "DRAFT" in c_id:
-            target_round = params.get("round", 1)
-            stmt = select(Player.player_id).where(Player.draft_round == target_round).distinct()
+        # 8. MULTI-TIME ACCOLADE Criterion
+        elif c_type == "ACCOLADE_COUNT":
+            accolade_type = params.get("accolade_type", "PRO_BOWL")
+            min_count = params.get("min_count", 3)
+            stmt = (
+                select(Accolade.player_id)
+                .where(Accolade.accolade_type == accolade_type)
+                .group_by(Accolade.player_id)
+                .having(func.count(Accolade.accolade_id) >= min_count)
+            )
             result = await session.execute(stmt)
             qualifying_ids.update(r[0] for r in result.fetchall())
 
-            if target_round == 1 or "RD1" in c_id:
-                qualifying_ids.update(CANONICAL_ROUND_1_PICKS)
+        # 9. DRAFT ROUND / OVERALL Criterion
+        elif c_type in ("DRAFT_ROUND", "DRAFT_OVERALL") or "DRAFT" in c_id:
+            if c_type == "DRAFT_OVERALL" or "TOP5" in c_id:
+                max_ovr = params.get("max_overall", 5)
+                stmt = select(Player.player_id).where(Player.draft_overall <= max_ovr, Player.draft_overall > 0).distinct()
+                result = await session.execute(stmt)
+                qualifying_ids.update(r[0] for r in result.fetchall())
 
-        # 5. COLLEGE Criterion
+            elif params.get("min_round") or "RD4_PLUS" in c_id:
+                min_rd = params.get("min_round", 4)
+                stmt = select(Player.player_id).where(Player.draft_round >= min_rd).distinct()
+                result = await session.execute(stmt)
+                qualifying_ids.update(r[0] for r in result.fetchall())
+
+            elif params.get("rounds") or "DAY2" in c_id:
+                rds = params.get("rounds", [2, 3])
+                stmt = select(Player.player_id).where(Player.draft_round.in_(rds)).distinct()
+                result = await session.execute(stmt)
+                qualifying_ids.update(r[0] for r in result.fetchall())
+
+            elif params.get("is_undrafted") or "UNDRAFTED" in c_id:
+                stmt = select(Player.player_id).where(or_(Player.draft_round.is_(None), Player.draft_round == 0)).distinct()
+                result = await session.execute(stmt)
+                qualifying_ids.update(r[0] for r in result.fetchall())
+
+            else:
+                target_round = params.get("round", 1)
+                stmt = select(Player.player_id).where(Player.draft_round == target_round).distinct()
+                result = await session.execute(stmt)
+                qualifying_ids.update(r[0] for r in result.fetchall())
+
+                if target_round == 1 or "RD1" in c_id:
+                    qualifying_ids.update(CANONICAL_ROUND_1_PICKS)
+
+        # 10. COLLEGE Criterion
         elif c_type == "COLLEGE":
             target_college = (params.get("college") or "").strip().lower()
             stmt = select(Player.player_id).where(func.lower(Player.college) == target_college).distinct()
@@ -161,6 +332,115 @@ class GridPrecomputeService:
                     qualifying_ids.add(player_key)
 
         return qualifying_ids
+
+    @classmethod
+    async def resolve_player_canonical_ids(
+        cls,
+        session: AsyncSession,
+        player_id: str,
+    ) -> Set[str]:
+        """
+        Given any player identifier (UUID, lowercase name, gsis_id, pfr_id),
+        returns all known canonical aliases for that player so validation can
+        perform a multi-key membership check against solution sets.
+
+        This bridges the gap between:
+        - Catalog-sourced solution sets that use lowercase player names
+        - DB-sourced solution sets that use UUID player_ids
+        - Frontend submissions that always send UUID player_ids from the search index
+        """
+        aliases: Set[str] = {player_id}
+        clean_id = player_id.strip()
+
+        # Try fetching by UUID (primary DB key)
+        try:
+            uid = uuid.UUID(clean_id)
+            stmt = select(Player).where(Player.player_id == str(uid))
+            result = await session.execute(stmt)
+            player = result.scalar_one_or_none()
+            if player:
+                aliases.add(player.full_name.lower().strip())
+                aliases.add(player.full_name.lower().replace(".", "").replace("-", " ").strip())
+                if player.gsis_id:
+                    aliases.add(player.gsis_id)
+                if player.pfr_id:
+                    aliases.add(player.pfr_id)
+                return aliases
+        except (ValueError, TypeError):
+            pass
+
+        # Try fetching by gsis_id or pfr_id
+        stmt = select(Player).where(
+            or_(
+                Player.gsis_id == clean_id,
+                Player.pfr_id == clean_id,
+            )
+        )
+        result = await session.execute(stmt)
+        player = result.scalar_one_or_none()
+        if player:
+            aliases.add(player.player_id)
+            aliases.add(player.full_name.lower().strip())
+            if player.gsis_id:
+                aliases.add(player.gsis_id)
+            if player.pfr_id:
+                aliases.add(player.pfr_id)
+            return aliases
+
+        # Treat submitted ID as a possible lowercase name and try name lookup
+        name_lower = clean_id.lower()
+        stmt = select(Player).where(
+            or_(
+                func.lower(Player.full_name) == name_lower,
+                func.lower(Player.full_name) == name_lower.replace(".", "").replace("-", " "),
+            )
+        )
+        result = await session.execute(stmt)
+        player = result.scalar_one_or_none()
+        if player:
+            aliases.add(player.player_id)
+            aliases.add(player.full_name.lower().strip())
+            if player.gsis_id:
+                aliases.add(player.gsis_id)
+            if player.pfr_id:
+                aliases.add(player.pfr_id)
+
+        # Always add normalized name variants of the input itself
+        aliases.add(name_lower)
+        aliases.add(name_lower.replace(".", "").replace("-", " "))
+
+        return aliases
+
+    @classmethod
+    async def enrich_solutions_with_db_uuids(
+        cls,
+        session: AsyncSession,
+        catalog_names: Set[str],
+    ) -> Set[str]:
+        """
+        Given a set of lowercase catalog player names, returns an enriched set
+        that also includes the UUID player_ids for any players found in the DB.
+        This ensures valid_solutions contains both forms so validation works
+        regardless of whether the client submits a UUID or a name.
+        """
+        enriched = set(catalog_names)
+        if not catalog_names:
+            return enriched
+
+        name_list = list(catalog_names)
+        # Batch lookup by normalized name
+        stmt = select(Player).where(
+            or_(
+                func.lower(Player.full_name).in_(name_list),
+                func.lower(Player.full_name).in_([n.replace(".", "").replace("-", " ") for n in name_list]),
+            )
+        )
+        result = await session.execute(stmt)
+        for player in result.scalars():
+            enriched.add(player.player_id)
+            if player.gsis_id:
+                enriched.add(player.gsis_id)
+        return enriched
 
     @classmethod
     async def precompute_and_store_puzzle(
@@ -212,7 +492,7 @@ class GridPrecomputeService:
             col_player_sets.append(p_set)
             logger.debug(f"Col {c_idx} ({col_criterion.get('criterion_id')}) matched {len(p_set)} players")
 
-        # 3. Intersect for all 9 cells
+        # 3. Intersect for all 9 cells and enrich with DB UUIDs
         valid_solutions: Dict[str, List[str]] = {}
         cell_cardinalities: List[List[int]] = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
@@ -220,7 +500,10 @@ class GridPrecomputeService:
             for c in range(3):
                 intersection = row_player_sets[r].intersection(col_player_sets[c])
                 cell_key = f"{r}_{c}"
-                cardinality = len(intersection)
+
+                # Enrich: resolve catalog names → DB UUIDs so both forms validate
+                enriched = await cls.enrich_solutions_with_db_uuids(session, intersection)
+                cardinality = len(intersection)  # use raw intersection count for difficulty metric
 
                 if cardinality < min_cardinality:
                     logger.warning(
@@ -228,8 +511,9 @@ class GridPrecomputeService:
                         f"for Row '{rows[r].get('criterion_id')}' and Col '{columns[c].get('criterion_id')}'."
                     )
 
-                valid_solutions[cell_key] = sorted(list(intersection))
+                valid_solutions[cell_key] = sorted(list(enriched))
                 cell_cardinalities[r][c] = cardinality
+
 
         # 4. Persist to PostgreSQL JSONB
         puzzle_data["valid_solutions"] = valid_solutions

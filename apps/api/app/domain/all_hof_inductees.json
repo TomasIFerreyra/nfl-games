@@ -1,0 +1,4051 @@
+[
+  {
+    "name": "Herb Adderley",
+    "class_year": 1980,
+    "position": "CB",
+    "teams": [
+      "DAL",
+      "GNB"
+    ]
+  },
+  {
+    "name": "Troy Aikman",
+    "class_year": 2006,
+    "position": "QB",
+    "teams": [
+      "DAL"
+    ]
+  },
+  {
+    "name": "Eric Allen",
+    "class_year": 2025,
+    "position": "CB",
+    "teams": [
+      "LVR",
+      "NOR",
+      "PHI"
+    ]
+  },
+  {
+    "name": "George Allen",
+    "class_year": 2002,
+    "position": "COACH",
+    "teams": [
+      "LAR",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Jared Allen",
+    "class_year": 2025,
+    "position": "DL",
+    "teams": [
+      "CAR",
+      "CHI",
+      "KC",
+      "MIN"
+    ]
+  },
+  {
+    "name": "Larry Allen",
+    "class_year": 1994,
+    "position": "OL",
+    "teams": [
+      "DAL",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Marcus Allen",
+    "class_year": 2003,
+    "position": "RB",
+    "teams": [
+      "KC",
+      "LVR"
+    ]
+  },
+  {
+    "name": "Lance Alworth",
+    "class_year": 1978,
+    "position": "WR",
+    "teams": [
+      "DAL",
+      "LAC"
+    ]
+  },
+  {
+    "name": "Morten Andersen",
+    "class_year": 2017,
+    "position": "K",
+    "teams": [
+      "ATL",
+      "KC",
+      "MIN",
+      "NOR",
+      "NYG"
+    ]
+  },
+  {
+    "name": "Doug Atkins",
+    "class_year": 1982,
+    "position": "DL",
+    "teams": [
+      "CHI",
+      "CLE",
+      "NOR"
+    ]
+  },
+  {
+    "name": "Steve Atwater",
+    "class_year": 2020,
+    "position": "S",
+    "teams": [
+      "DEN",
+      "NYJ"
+    ]
+  },
+  {
+    "name": "Red Badgro",
+    "class_year": 1981,
+    "position": "WR",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Champ Bailey",
+    "class_year": 2019,
+    "position": "CB",
+    "teams": [
+      "DEN",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Ronde Barber",
+    "class_year": 2023,
+    "position": "CB",
+    "teams": [
+      "TAM"
+    ]
+  },
+  {
+    "name": "Lem Barney",
+    "class_year": 1992,
+    "position": "CB",
+    "teams": [
+      "DET"
+    ]
+  },
+  {
+    "name": "Cliff Battles",
+    "class_year": 1968,
+    "position": "RB",
+    "teams": [
+      "WAS"
+    ]
+  },
+  {
+    "name": "Sammy Baugh",
+    "class_year": 1963,
+    "position": "QB",
+    "teams": [
+      "WAS"
+    ]
+  },
+  {
+    "name": "Bobby Beathard",
+    "class_year": 2018,
+    "position": "ATH",
+    "teams": [
+      "ATL",
+      "KC",
+      "LAC",
+      "MIA",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Chuck Bednarik",
+    "class_year": 1967,
+    "position": "OL",
+    "teams": [
+      "PHI"
+    ]
+  },
+  {
+    "name": "Bert Bell",
+    "class_year": 1963,
+    "position": "ATH",
+    "teams": [
+      "PHI",
+      "PIT"
+    ]
+  },
+  {
+    "name": "Bobby Bell",
+    "class_year": 1983,
+    "position": "LB",
+    "teams": [
+      "KC"
+    ]
+  },
+  {
+    "name": "Raymond Berry",
+    "class_year": 1973,
+    "position": "WR",
+    "teams": [
+      "IND"
+    ]
+  },
+  {
+    "name": "Elvin Bethea",
+    "class_year": 2003,
+    "position": "DL",
+    "teams": [
+      "TEN"
+    ]
+  },
+  {
+    "name": "Jerome Bettis",
+    "class_year": 2015,
+    "position": "RB",
+    "teams": [
+      "LAR",
+      "PIT"
+    ]
+  },
+  {
+    "name": "Charles Bidwill",
+    "class_year": 1967,
+    "position": "ATH",
+    "teams": [
+      "ARI"
+    ]
+  },
+  {
+    "name": "Fred Biletnikoff",
+    "class_year": 1988,
+    "position": "WR",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "George Blanda",
+    "class_year": 1981,
+    "position": "QB",
+    "teams": [
+      "CHI",
+      "IND",
+      "LVR",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Johnny Blood",
+    "class_year": 1963,
+    "position": "RB",
+    "teams": [
+      "GNB",
+      "PIT"
+    ]
+  },
+  {
+    "name": "Mel Blount",
+    "class_year": 1989,
+    "position": "CB",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Tony Boselli",
+    "class_year": 2022,
+    "position": "OL",
+    "teams": [
+      "JAX"
+    ]
+  },
+  {
+    "name": "Pat Bowlen",
+    "class_year": 2019,
+    "position": "ATH",
+    "teams": [
+      "DEN"
+    ]
+  },
+  {
+    "name": "Terry Bradshaw",
+    "class_year": 1989,
+    "position": "QB",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Cliff Branch",
+    "class_year": 2022,
+    "position": "WR",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Gil Brandt",
+    "class_year": 2019,
+    "position": "ATH",
+    "teams": [
+      "DAL"
+    ]
+  },
+  {
+    "name": "Robert Brazile",
+    "class_year": 2018,
+    "position": "LB",
+    "teams": [
+      "TEN"
+    ]
+  },
+  {
+    "name": "Drew Brees",
+    "class_year": 2026,
+    "position": "QB",
+    "teams": [
+      "LAC",
+      "NOR"
+    ]
+  },
+  {
+    "name": "Derrick Brooks",
+    "class_year": 2014,
+    "position": "LB",
+    "teams": [
+      "TAM"
+    ]
+  },
+  {
+    "name": "Bob Brown",
+    "class_year": 2004,
+    "position": "OL",
+    "teams": [
+      "LAR",
+      "LVR",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Jim Brown",
+    "class_year": 1971,
+    "position": "RB",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Paul Brown",
+    "class_year": 1967,
+    "position": "COACH",
+    "teams": [
+      "CIN",
+      "CLE"
+    ]
+  },
+  {
+    "name": "Rosey Brown",
+    "class_year": 1975,
+    "position": "OL",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Tim Brown",
+    "class_year": 2015,
+    "position": "WR",
+    "teams": [
+      "LVR",
+      "TAM"
+    ]
+  },
+  {
+    "name": "Willie Brown",
+    "class_year": 1984,
+    "position": "CB",
+    "teams": [
+      "DEN",
+      "LVR"
+    ]
+  },
+  {
+    "name": "Isaac Bruce",
+    "class_year": 2020,
+    "position": "WR",
+    "teams": [
+      "LAR",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Buck Buchanan",
+    "class_year": 1990,
+    "position": "DL",
+    "teams": [
+      "KC"
+    ]
+  },
+  {
+    "name": "Nick Buoniconti",
+    "class_year": 2001,
+    "position": "LB",
+    "teams": [
+      "MIA",
+      "NWE"
+    ]
+  },
+  {
+    "name": "Dick Butkus",
+    "class_year": 1979,
+    "position": "LB",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Jack Butler",
+    "class_year": 2012,
+    "position": "CB",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "LeRoy Butler",
+    "class_year": 2022,
+    "position": "S",
+    "teams": [
+      "GNB"
+    ]
+  },
+  {
+    "name": "Earl Campbell",
+    "class_year": 1991,
+    "position": "RB",
+    "teams": [
+      "NOR",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Tony Canadeo",
+    "class_year": 1974,
+    "position": "RB",
+    "teams": [
+      "GNB"
+    ]
+  },
+  {
+    "name": "Harold Carmichael",
+    "class_year": 2020,
+    "position": "WR",
+    "teams": [
+      "DAL",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Joseph Carr",
+    "class_year": 1963,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Harry Carson",
+    "class_year": 2006,
+    "position": "LB",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Cris Carter",
+    "class_year": 2013,
+    "position": "WR",
+    "teams": [
+      "MIA",
+      "MIN",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Dave Casper",
+    "class_year": 2002,
+    "position": "TE",
+    "teams": [
+      "LVR",
+      "MIN",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Guy Chamberlin",
+    "class_year": 1965,
+    "position": "WR",
+    "teams": [
+      "ARI",
+      "CHI"
+    ]
+  },
+  {
+    "name": "Jack Christiansen",
+    "class_year": 1970,
+    "position": "S",
+    "teams": [
+      "DET"
+    ]
+  },
+  {
+    "name": "Dutch Clark",
+    "class_year": 1963,
+    "position": "RB",
+    "teams": [
+      "DET"
+    ]
+  },
+  {
+    "name": "George Connor",
+    "class_year": 1975,
+    "position": "LB",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Jimmy Conzelman",
+    "class_year": 1964,
+    "position": "QB",
+    "teams": [
+      "ARI",
+      "CAR",
+      "CHI"
+    ]
+  },
+  {
+    "name": "Don Coryell",
+    "class_year": 2023,
+    "position": "COACH",
+    "teams": [
+      "ARI",
+      "LAC"
+    ]
+  },
+  {
+    "name": "Jim Covert",
+    "class_year": 2020,
+    "position": "OL",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Bill Cowher",
+    "class_year": 2020,
+    "position": "COACH",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Roger Craig",
+    "class_year": 2026,
+    "position": "RB",
+    "teams": [
+      "LVR",
+      "MIN",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Lou Creekmur",
+    "class_year": 1996,
+    "position": "OL",
+    "teams": [
+      "DET"
+    ]
+  },
+  {
+    "name": "Larry Csonka",
+    "class_year": 1987,
+    "position": "RB",
+    "teams": [
+      "MIA",
+      "NYG"
+    ]
+  },
+  {
+    "name": "Curley Culp",
+    "class_year": 1968,
+    "position": "DL",
+    "teams": [
+      "DET",
+      "KC",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Al Davis",
+    "class_year": 1992,
+    "position": "COACH",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Terrell Davis",
+    "class_year": 2017,
+    "position": "RB",
+    "teams": [
+      "DEN"
+    ]
+  },
+  {
+    "name": "Willie Davis",
+    "class_year": 1981,
+    "position": "DL",
+    "teams": [
+      "CLE",
+      "GNB"
+    ]
+  },
+  {
+    "name": "Brian Dawkins",
+    "class_year": 2018,
+    "position": "S",
+    "teams": [
+      "DEN",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Dermontti Dawson",
+    "class_year": 2012,
+    "position": "OL",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Len Dawson",
+    "class_year": 1987,
+    "position": "QB",
+    "teams": [
+      "CLE",
+      "HOU",
+      "KC",
+      "PIT"
+    ]
+  },
+  {
+    "name": "Fred Dean",
+    "class_year": 2008,
+    "position": "DL",
+    "teams": [
+      "LAC",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Edward J. DeBartolo, Jr.",
+    "class_year": 2016,
+    "position": "ATH",
+    "teams": [
+      "SFO"
+    ]
+  },
+  {
+    "name": "Joe DeLamielleure",
+    "class_year": 2003,
+    "position": "OL",
+    "teams": [
+      "BUF",
+      "CLE"
+    ]
+  },
+  {
+    "name": "Richard Dent",
+    "class_year": 2011,
+    "position": "DL",
+    "teams": [
+      "CHI",
+      "IND",
+      "PHI",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Eric Dickerson",
+    "class_year": 1999,
+    "position": "RB",
+    "teams": [
+      "ATL",
+      "IND",
+      "LAR",
+      "LVR"
+    ]
+  },
+  {
+    "name": "Dan Dierdorf",
+    "class_year": 1996,
+    "position": "OL",
+    "teams": [
+      "ARI"
+    ]
+  },
+  {
+    "name": "Bobby Dillon",
+    "class_year": 2020,
+    "position": "DL",
+    "teams": [
+      "GNB"
+    ]
+  },
+  {
+    "name": "Mike Ditka",
+    "class_year": 1988,
+    "position": "TE",
+    "teams": [
+      "CHI",
+      "DAL",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Chris Doleman",
+    "class_year": 2012,
+    "position": "DL",
+    "teams": [
+      "ATL",
+      "MIN",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Art Donovan",
+    "class_year": 1968,
+    "position": "DL",
+    "teams": [
+      "HOU",
+      "IND",
+      "KC"
+    ]
+  },
+  {
+    "name": "Tony Dorsett",
+    "class_year": 1994,
+    "position": "RB",
+    "teams": [
+      "DAL",
+      "DEN"
+    ]
+  },
+  {
+    "name": "John \"Paddy\" Driscoll",
+    "class_year": 1965,
+    "position": "QB",
+    "teams": [
+      "ARI",
+      "CHI"
+    ]
+  },
+  {
+    "name": "Bill Dudley",
+    "class_year": 1966,
+    "position": "RB",
+    "teams": [
+      "DET",
+      "PIT",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Tony Dungy",
+    "class_year": 2016,
+    "position": "COACH",
+    "teams": [
+      "IND",
+      "TAM"
+    ]
+  },
+  {
+    "name": "Kenny Easley",
+    "class_year": 2017,
+    "position": "S",
+    "teams": [
+      "SEA"
+    ]
+  },
+  {
+    "name": "Albert Glen \"Turk\" Edwards",
+    "class_year": 1969,
+    "position": "OL",
+    "teams": [
+      "WAS"
+    ]
+  },
+  {
+    "name": "Carl Eller",
+    "class_year": 2004,
+    "position": "DL",
+    "teams": [
+      "MIN",
+      "SEA"
+    ]
+  },
+  {
+    "name": "John Elway",
+    "class_year": 2004,
+    "position": "QB",
+    "teams": [
+      "DEN"
+    ]
+  },
+  {
+    "name": "Weeb Ewbank",
+    "class_year": 1978,
+    "position": "COACH",
+    "teams": [
+      "IND",
+      "NYJ"
+    ]
+  },
+  {
+    "name": "Alan Faneca",
+    "class_year": 2021,
+    "position": "OL",
+    "teams": [
+      "ARI",
+      "NYJ",
+      "PIT"
+    ]
+  },
+  {
+    "name": "Marshall Faulk",
+    "class_year": 2011,
+    "position": "RB",
+    "teams": [
+      "IND",
+      "LAR"
+    ]
+  },
+  {
+    "name": "Brett Favre",
+    "class_year": 2016,
+    "position": "QB",
+    "teams": [
+      "ATL",
+      "GNB",
+      "MIN",
+      "NYJ"
+    ]
+  },
+  {
+    "name": "Tom Fears",
+    "class_year": 1970,
+    "position": "WR",
+    "teams": [
+      "LAR"
+    ]
+  },
+  {
+    "name": "Jim Finks",
+    "class_year": 1995,
+    "position": "ATH",
+    "teams": [
+      "CHI",
+      "MIN",
+      "NOR"
+    ]
+  },
+  {
+    "name": "Larry Fitzgerald",
+    "class_year": 2026,
+    "position": "WR",
+    "teams": [
+      "ARI"
+    ]
+  },
+  {
+    "name": "Ray Flaherty",
+    "class_year": 1976,
+    "position": "WR",
+    "teams": [
+      "NYG",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Tom Flores",
+    "class_year": 2021,
+    "position": "COACH",
+    "teams": [
+      "LVR",
+      "SEA"
+    ]
+  },
+  {
+    "name": "Len Ford",
+    "class_year": 1976,
+    "position": "DL",
+    "teams": [
+      "CLE",
+      "GNB"
+    ]
+  },
+  {
+    "name": "Dan Fortmann",
+    "class_year": 1965,
+    "position": "OL",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Dan Fouts",
+    "class_year": 1993,
+    "position": "QB",
+    "teams": [
+      "LAC"
+    ]
+  },
+  {
+    "name": "Dwight Freeney",
+    "class_year": 2024,
+    "position": "DL",
+    "teams": [
+      "ARI",
+      "ATL",
+      "DET",
+      "IND",
+      "LAC",
+      "SEA"
+    ]
+  },
+  {
+    "name": "Benny Friedman",
+    "class_year": 2005,
+    "position": "QB",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Antonio Gates",
+    "class_year": 2025,
+    "position": "TE",
+    "teams": [
+      "LAC"
+    ]
+  },
+  {
+    "name": "Frank Gatski",
+    "class_year": 1985,
+    "position": "OL",
+    "teams": [
+      "CLE",
+      "DET"
+    ]
+  },
+  {
+    "name": "Bill George",
+    "class_year": 1974,
+    "position": "LB",
+    "teams": [
+      "CHI",
+      "LAR"
+    ]
+  },
+  {
+    "name": "Joe Gibbs",
+    "class_year": 1996,
+    "position": "COACH",
+    "teams": [
+      "WAS"
+    ]
+  },
+  {
+    "name": "Frank Gifford",
+    "class_year": 1977,
+    "position": "RB",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Sid Gillman",
+    "class_year": 1983,
+    "position": "COACH",
+    "teams": [
+      "LAC",
+      "LAR",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Tony Gonzalez",
+    "class_year": 2019,
+    "position": "TE",
+    "teams": [
+      "ATL",
+      "KC"
+    ]
+  },
+  {
+    "name": "Randy Gradishar",
+    "class_year": 2024,
+    "position": "LB",
+    "teams": [
+      "DEN"
+    ]
+  },
+  {
+    "name": "Otto Graham",
+    "class_year": 1965,
+    "position": "QB",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Harold \"Red\" Grange",
+    "class_year": 1963,
+    "position": "RB",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Bud Grant",
+    "class_year": 1994,
+    "position": "COACH",
+    "teams": [
+      "MIN"
+    ]
+  },
+  {
+    "name": "Darrell Green",
+    "class_year": 2008,
+    "position": "CB",
+    "teams": [
+      "WAS"
+    ]
+  },
+  {
+    "name": "Joe Greene",
+    "class_year": 1987,
+    "position": "DL",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Kevin Greene",
+    "class_year": 2016,
+    "position": "LB",
+    "teams": [
+      "CAR",
+      "LAR",
+      "PIT",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Forrest Gregg",
+    "class_year": 1977,
+    "position": "OL",
+    "teams": [
+      "DAL",
+      "GNB"
+    ]
+  },
+  {
+    "name": "Bob Griese",
+    "class_year": 1990,
+    "position": "QB",
+    "teams": [
+      "MIA"
+    ]
+  },
+  {
+    "name": "Russ Grimm",
+    "class_year": 2010,
+    "position": "OL",
+    "teams": [
+      "WAS"
+    ]
+  },
+  {
+    "name": "Lou Groza",
+    "class_year": 1974,
+    "position": "OL",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Ray Guy",
+    "class_year": 2014,
+    "position": "P",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Joe Guyon",
+    "class_year": 1966,
+    "position": "RB",
+    "teams": [
+      "DAL",
+      "NYG"
+    ]
+  },
+  {
+    "name": "George Halas",
+    "class_year": 1963,
+    "position": "ATH",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Charles Haley",
+    "class_year": 2015,
+    "position": "DL",
+    "teams": [
+      "DAL",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Jack Ham",
+    "class_year": 1988,
+    "position": "LB",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Dan Hampton",
+    "class_year": 2002,
+    "position": "DL",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Chris Hanburger",
+    "class_year": 2011,
+    "position": "LB",
+    "teams": [
+      "WAS"
+    ]
+  },
+  {
+    "name": "John Hannah",
+    "class_year": 1991,
+    "position": "OL",
+    "teams": [
+      "NWE"
+    ]
+  },
+  {
+    "name": "Cliff Harris",
+    "class_year": 2020,
+    "position": "S",
+    "teams": [
+      "DAL"
+    ]
+  },
+  {
+    "name": "Franco Harris",
+    "class_year": 1990,
+    "position": "RB",
+    "teams": [
+      "PIT",
+      "SEA"
+    ]
+  },
+  {
+    "name": "Marvin Harrison",
+    "class_year": 2016,
+    "position": "WR",
+    "teams": [
+      "IND"
+    ]
+  },
+  {
+    "name": "Bob Hayes",
+    "class_year": 2009,
+    "position": "WR",
+    "teams": [
+      "DAL",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Mike Haynes",
+    "class_year": 1997,
+    "position": "CB",
+    "teams": [
+      "LVR",
+      "NWE"
+    ]
+  },
+  {
+    "name": "Ed Healey",
+    "class_year": 1964,
+    "position": "OL",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Mel Hein",
+    "class_year": 1963,
+    "position": "OL",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Ted Hendricks",
+    "class_year": 1990,
+    "position": "LB",
+    "teams": [
+      "GNB",
+      "IND",
+      "LVR"
+    ]
+  },
+  {
+    "name": "Pete Henry",
+    "class_year": 1963,
+    "position": "OL",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Arnie Herber",
+    "class_year": 1966,
+    "position": "QB",
+    "teams": [
+      "GNB",
+      "NYG"
+    ]
+  },
+  {
+    "name": "Devin Hester",
+    "class_year": 2024,
+    "position": "WR",
+    "teams": [
+      "ATL",
+      "BAL",
+      "CHI",
+      "SEA"
+    ]
+  },
+  {
+    "name": "Bill Hewitt",
+    "class_year": 1971,
+    "position": "WR",
+    "teams": [
+      "CHI",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Gene Hickerson",
+    "class_year": 2007,
+    "position": "OL",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Winston Hill",
+    "class_year": 2020,
+    "position": "OL",
+    "teams": [
+      "LAR",
+      "NYJ"
+    ]
+  },
+  {
+    "name": "Clarke Hinkle",
+    "class_year": 1964,
+    "position": "RB",
+    "teams": [
+      "GNB"
+    ]
+  },
+  {
+    "name": "Elroy (Crazylegs) Hirsch",
+    "class_year": 1968,
+    "position": "RB",
+    "teams": [
+      "LAR"
+    ]
+  },
+  {
+    "name": "Paul Hornung",
+    "class_year": 1986,
+    "position": "RB",
+    "teams": [
+      "GNB"
+    ]
+  },
+  {
+    "name": "Ken Houston",
+    "class_year": 1986,
+    "position": "S",
+    "teams": [
+      "TEN",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Chuck Howley",
+    "class_year": 2023,
+    "position": "LB",
+    "teams": [
+      "CHI",
+      "DAL"
+    ]
+  },
+  {
+    "name": "Cal Hubbard",
+    "class_year": 1963,
+    "position": "OL",
+    "teams": [
+      "GNB",
+      "NYG",
+      "PIT"
+    ]
+  },
+  {
+    "name": "Sam Huff",
+    "class_year": 1982,
+    "position": "LB",
+    "teams": [
+      "NYG",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Claude Humphrey",
+    "class_year": 2014,
+    "position": "DL",
+    "teams": [
+      "ATL",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Lamar Hunt",
+    "class_year": 1972,
+    "position": "ATH",
+    "teams": [
+      "HOU",
+      "KC"
+    ]
+  },
+  {
+    "name": "Steve Hutchinson",
+    "class_year": 2020,
+    "position": "OL",
+    "teams": [
+      "MIN",
+      "SEA",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Don Hutson",
+    "class_year": 1963,
+    "position": "WR",
+    "teams": [
+      "GNB"
+    ]
+  },
+  {
+    "name": "Michael Irvin",
+    "class_year": 2007,
+    "position": "WR",
+    "teams": [
+      "DAL"
+    ]
+  },
+  {
+    "name": "Rickey Jackson",
+    "class_year": 2010,
+    "position": "LB",
+    "teams": [
+      "NOR",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Edgerrin James",
+    "class_year": 2020,
+    "position": "RB",
+    "teams": [
+      "ARI",
+      "IND",
+      "SEA"
+    ]
+  },
+  {
+    "name": "Andre Johnson",
+    "class_year": 2024,
+    "position": "WR",
+    "teams": [
+      "HOU",
+      "IND",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Calvin Johnson",
+    "class_year": 2021,
+    "position": "WR",
+    "teams": [
+      "DET"
+    ]
+  },
+  {
+    "name": "Jimmy Johnson",
+    "class_year": 1994,
+    "position": "CB",
+    "teams": [
+      "SFO"
+    ]
+  },
+  {
+    "name": "Jimmy Johnson",
+    "class_year": 2020,
+    "position": "COACH",
+    "teams": [
+      "DAL",
+      "MIA"
+    ]
+  },
+  {
+    "name": "John Henry Johnson",
+    "class_year": 1987,
+    "position": "RB",
+    "teams": [
+      "DET",
+      "PIT",
+      "SFO",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Charlie Joiner",
+    "class_year": 1996,
+    "position": "WR",
+    "teams": [
+      "CIN",
+      "LAC",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Deacon Jones",
+    "class_year": 1980,
+    "position": "DL",
+    "teams": [
+      "LAC",
+      "LAR",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Jerry Jones",
+    "class_year": 2017,
+    "position": "ATH",
+    "teams": [
+      "DAL"
+    ]
+  },
+  {
+    "name": "Stan Jones",
+    "class_year": 1991,
+    "position": "OL",
+    "teams": [
+      "CHI",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Walter Jones",
+    "class_year": 2014,
+    "position": "OL",
+    "teams": [
+      "SEA"
+    ]
+  },
+  {
+    "name": "Henry Jordan",
+    "class_year": 1995,
+    "position": "DL",
+    "teams": [
+      "CLE",
+      "GNB"
+    ]
+  },
+  {
+    "name": "Sonny Jurgensen",
+    "class_year": 1983,
+    "position": "QB",
+    "teams": [
+      "PHI",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Alex Karras",
+    "class_year": 2020,
+    "position": "DL",
+    "teams": [
+      "DET"
+    ]
+  },
+  {
+    "name": "Jim Kelly",
+    "class_year": 2002,
+    "position": "QB",
+    "teams": [
+      "BUF"
+    ]
+  },
+  {
+    "name": "Leroy Kelly",
+    "class_year": 1994,
+    "position": "RB",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Cortez Kennedy",
+    "class_year": 2012,
+    "position": "DL",
+    "teams": [
+      "SEA"
+    ]
+  },
+  {
+    "name": "Walt Kiesling",
+    "class_year": 1966,
+    "position": "OL",
+    "teams": [
+      "ARI",
+      "CHI",
+      "GNB",
+      "PIT"
+    ]
+  },
+  {
+    "name": "Frank \"Bruiser\" Kinard",
+    "class_year": 1971,
+    "position": "OL",
+    "teams": []
+  },
+  {
+    "name": "Joe Klecko",
+    "class_year": 2023,
+    "position": "DL",
+    "teams": [
+      "IND",
+      "NYJ"
+    ]
+  },
+  {
+    "name": "Jerry Kramer",
+    "class_year": 2018,
+    "position": "OL",
+    "teams": [
+      "GNB"
+    ]
+  },
+  {
+    "name": "Paul Krause",
+    "class_year": 1998,
+    "position": "S",
+    "teams": [
+      "MIN",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Luke Kuechly",
+    "class_year": 2026,
+    "position": "LB",
+    "teams": [
+      "CAR"
+    ]
+  },
+  {
+    "name": "Earl \"Curly\" Lambeau",
+    "class_year": 1963,
+    "position": "ATH",
+    "teams": [
+      "ARI",
+      "GNB",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Jack Lambert",
+    "class_year": 1990,
+    "position": "LB",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Tom Landry",
+    "class_year": 1990,
+    "position": "COACH",
+    "teams": [
+      "DAL"
+    ]
+  },
+  {
+    "name": "Dick \"Night Train\" Lane",
+    "class_year": 1974,
+    "position": "CB",
+    "teams": [
+      "ARI",
+      "DET",
+      "LAR"
+    ]
+  },
+  {
+    "name": "Jim Langer",
+    "class_year": 1987,
+    "position": "OL",
+    "teams": [
+      "MIA",
+      "MIN"
+    ]
+  },
+  {
+    "name": "Willie Lanier",
+    "class_year": 1986,
+    "position": "LB",
+    "teams": [
+      "KC"
+    ]
+  },
+  {
+    "name": "Steve Largent",
+    "class_year": 1995,
+    "position": "WR",
+    "teams": [
+      "SEA"
+    ]
+  },
+  {
+    "name": "Yale Lary",
+    "class_year": 1979,
+    "position": "S",
+    "teams": [
+      "DET"
+    ]
+  },
+  {
+    "name": "Dante Lavelli",
+    "class_year": 1975,
+    "position": "WR",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Ty Law",
+    "class_year": 2019,
+    "position": "CB",
+    "teams": [
+      "DEN",
+      "KC",
+      "NWE",
+      "NYJ"
+    ]
+  },
+  {
+    "name": "Bobby Layne",
+    "class_year": 1967,
+    "position": "QB",
+    "teams": [
+      "CHI",
+      "DET",
+      "PIT"
+    ]
+  },
+  {
+    "name": "Dick LeBeau",
+    "class_year": 2010,
+    "position": "CB",
+    "teams": [
+      "DET"
+    ]
+  },
+  {
+    "name": "Alphonse \"Tuffy\" Leemans",
+    "class_year": 1978,
+    "position": "RB",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Marv Levy",
+    "class_year": 2001,
+    "position": "COACH",
+    "teams": [
+      "BUF",
+      "KC"
+    ]
+  },
+  {
+    "name": "Ray Lewis",
+    "class_year": 2018,
+    "position": "LB",
+    "teams": [
+      "BAL"
+    ]
+  },
+  {
+    "name": "Bob Lilly",
+    "class_year": 1980,
+    "position": "DL",
+    "teams": [
+      "DAL"
+    ]
+  },
+  {
+    "name": "Floyd Little",
+    "class_year": 2010,
+    "position": "RB",
+    "teams": [
+      "DEN"
+    ]
+  },
+  {
+    "name": "Larry Little",
+    "class_year": 1993,
+    "position": "OL",
+    "teams": [
+      "LAC",
+      "MIA"
+    ]
+  },
+  {
+    "name": "James Lofton",
+    "class_year": 2003,
+    "position": "WR",
+    "teams": [
+      "BUF",
+      "GNB",
+      "LAR",
+      "LVR",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Vince Lombardi",
+    "class_year": 1971,
+    "position": "ATH",
+    "teams": [
+      "GNB",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Howie Long",
+    "class_year": 2000,
+    "position": "DL",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Ronnie Lott",
+    "class_year": 2000,
+    "position": "CB",
+    "teams": [
+      "LVR",
+      "NYJ",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Sid Luckman",
+    "class_year": 1965,
+    "position": "QB",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "William R. Lyman",
+    "class_year": 1964,
+    "position": "OL",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "John Lynch",
+    "class_year": 2021,
+    "position": "S",
+    "teams": [
+      "DEN",
+      "TAM"
+    ]
+  },
+  {
+    "name": "Tom Mack",
+    "class_year": 1999,
+    "position": "OL",
+    "teams": [
+      "LAR"
+    ]
+  },
+  {
+    "name": "John Mackey",
+    "class_year": 1992,
+    "position": "TE",
+    "teams": [
+      "IND",
+      "LAC"
+    ]
+  },
+  {
+    "name": "John Madden",
+    "class_year": 2006,
+    "position": "COACH",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Peyton Manning",
+    "class_year": 2021,
+    "position": "QB",
+    "teams": [
+      "DEN",
+      "IND"
+    ]
+  },
+  {
+    "name": "Tim Mara",
+    "class_year": 1963,
+    "position": "ATH",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Wellington Mara",
+    "class_year": 1997,
+    "position": "ATH",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Gino Marchetti",
+    "class_year": 1972,
+    "position": "DL",
+    "teams": [
+      "HOU",
+      "IND",
+      "KC"
+    ]
+  },
+  {
+    "name": "Dan Marino",
+    "class_year": 2005,
+    "position": "QB",
+    "teams": [
+      "MIA"
+    ]
+  },
+  {
+    "name": "George Preston Marshall",
+    "class_year": 1963,
+    "position": "ATH",
+    "teams": [
+      "WAS"
+    ]
+  },
+  {
+    "name": "Curtis Martin",
+    "class_year": 2012,
+    "position": "RB",
+    "teams": [
+      "NWE",
+      "NYJ"
+    ]
+  },
+  {
+    "name": "Ollie Matson",
+    "class_year": 1972,
+    "position": "RB",
+    "teams": [
+      "ARI",
+      "DET",
+      "LAR",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Bruce Matthews",
+    "class_year": 2007,
+    "position": "OL",
+    "teams": [
+      "TEN"
+    ]
+  },
+  {
+    "name": "Kevin Mawae",
+    "class_year": 2019,
+    "position": "ATH",
+    "teams": [
+      "NYJ",
+      "SEA",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Don Maynard",
+    "class_year": 1987,
+    "position": "WR",
+    "teams": [
+      "ARI",
+      "NYG",
+      "NYJ",
+      "TEN"
+    ]
+  },
+  {
+    "name": "George McAfee",
+    "class_year": 1966,
+    "position": "RB",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Mike McCormack",
+    "class_year": 1984,
+    "position": "OL",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Randall McDaniel",
+    "class_year": 2009,
+    "position": "OL",
+    "teams": [
+      "MIN",
+      "TAM"
+    ]
+  },
+  {
+    "name": "Tommy McDonald",
+    "class_year": 1998,
+    "position": "WR",
+    "teams": [
+      "ATL",
+      "CLE",
+      "DAL",
+      "LAR",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Hugh McElhenny",
+    "class_year": 1970,
+    "position": "RB",
+    "teams": [
+      "DET",
+      "MIN",
+      "NYG",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Steve McMichael",
+    "class_year": 2024,
+    "position": "DL",
+    "teams": [
+      "CHI",
+      "GNB",
+      "NWE"
+    ]
+  },
+  {
+    "name": "Art McNally",
+    "class_year": 2022,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Mike Michalske",
+    "class_year": 1964,
+    "position": "OL",
+    "teams": [
+      "GNB"
+    ]
+  },
+  {
+    "name": "Wayne Millner",
+    "class_year": 1968,
+    "position": "WR",
+    "teams": [
+      "WAS"
+    ]
+  },
+  {
+    "name": "Sam Mills",
+    "class_year": 2022,
+    "position": "LB",
+    "teams": [
+      "CAR",
+      "NOR"
+    ]
+  },
+  {
+    "name": "Bobby Mitchell",
+    "class_year": 1983,
+    "position": "WR",
+    "teams": [
+      "CLE",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Ron Mix",
+    "class_year": 1979,
+    "position": "OL",
+    "teams": [
+      "LAC",
+      "LVR"
+    ]
+  },
+  {
+    "name": "Art Monk",
+    "class_year": 2008,
+    "position": "WR",
+    "teams": [
+      "NYJ",
+      "PHI",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Joe Montana",
+    "class_year": 2000,
+    "position": "QB",
+    "teams": [
+      "KC",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Warren Moon",
+    "class_year": 2006,
+    "position": "QB",
+    "teams": [
+      "KC",
+      "MIN",
+      "SEA",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Lenny Moore",
+    "class_year": 1975,
+    "position": "RB",
+    "teams": [
+      "IND"
+    ]
+  },
+  {
+    "name": "Randy Moss",
+    "class_year": 2018,
+    "position": "WR",
+    "teams": [
+      "LVR",
+      "MIN",
+      "NWE",
+      "SFO",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Marion Motley",
+    "class_year": 1968,
+    "position": "RB",
+    "teams": [
+      "CLE",
+      "PIT"
+    ]
+  },
+  {
+    "name": "Mike Munchak",
+    "class_year": 2001,
+    "position": "OL",
+    "teams": [
+      "TEN"
+    ]
+  },
+  {
+    "name": "Anthony Mu\u00f1oz",
+    "class_year": 1998,
+    "position": "OL",
+    "teams": [
+      "CIN"
+    ]
+  },
+  {
+    "name": "George Musso",
+    "class_year": 1982,
+    "position": "OL",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Bronko Nagurski",
+    "class_year": 1963,
+    "position": "RB",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Joe Namath",
+    "class_year": 1985,
+    "position": "QB",
+    "teams": [
+      "LAR",
+      "NYJ"
+    ]
+  },
+  {
+    "name": "Greasy Neale",
+    "class_year": 1969,
+    "position": "COACH",
+    "teams": [
+      "PHI"
+    ]
+  },
+  {
+    "name": "Ernie Nevers",
+    "class_year": 1963,
+    "position": "RB",
+    "teams": [
+      "ARI"
+    ]
+  },
+  {
+    "name": "Ozzie Newsome",
+    "class_year": 1999,
+    "position": "TE",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Ray Nitschke",
+    "class_year": 1978,
+    "position": "LB",
+    "teams": [
+      "GNB"
+    ]
+  },
+  {
+    "name": "Chuck Noll",
+    "class_year": 1993,
+    "position": "COACH",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Leo Nomellini",
+    "class_year": 1969,
+    "position": "DL",
+    "teams": [
+      "SFO"
+    ]
+  },
+  {
+    "name": "Bill Nunn",
+    "class_year": 2021,
+    "position": "ATH",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Jonathan Ogden",
+    "class_year": 2013,
+    "position": "OL",
+    "teams": [
+      "BAL"
+    ]
+  },
+  {
+    "name": "Merlin Olsen",
+    "class_year": 1982,
+    "position": "DL",
+    "teams": [
+      "LAR"
+    ]
+  },
+  {
+    "name": "Jim Otto",
+    "class_year": 1980,
+    "position": "OL",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Steve Owen",
+    "class_year": 1966,
+    "position": "OL",
+    "teams": [
+      "DAL",
+      "NYG"
+    ]
+  },
+  {
+    "name": "Terrell Owens",
+    "class_year": 2018,
+    "position": "WR",
+    "teams": [
+      "BUF",
+      "CIN",
+      "DAL",
+      "PHI",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Orlando Pace",
+    "class_year": 2016,
+    "position": "OL",
+    "teams": [
+      "CHI",
+      "LAR"
+    ]
+  },
+  {
+    "name": "Alan Page",
+    "class_year": 1988,
+    "position": "DL",
+    "teams": [
+      "CHI",
+      "MIN"
+    ]
+  },
+  {
+    "name": "Bill Parcells",
+    "class_year": 1983,
+    "position": "COACH",
+    "teams": [
+      "DAL",
+      "NWE",
+      "NYG",
+      "NYJ"
+    ]
+  },
+  {
+    "name": "Ace Parker",
+    "class_year": 1972,
+    "position": "QB",
+    "teams": []
+  },
+  {
+    "name": "Jim Parker",
+    "class_year": 1973,
+    "position": "OL",
+    "teams": [
+      "IND"
+    ]
+  },
+  {
+    "name": "Walter Payton",
+    "class_year": 1993,
+    "position": "RB",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Drew Pearson",
+    "class_year": 2021,
+    "position": "WR",
+    "teams": [
+      "DAL"
+    ]
+  },
+  {
+    "name": "Julius Peppers",
+    "class_year": 2024,
+    "position": "DL",
+    "teams": [
+      "CAR",
+      "CHI",
+      "GNB"
+    ]
+  },
+  {
+    "name": "Joe Perry",
+    "class_year": 1969,
+    "position": "RB",
+    "teams": [
+      "IND",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Pete Pihos",
+    "class_year": 1970,
+    "position": "WR",
+    "teams": [
+      "PHI"
+    ]
+  },
+  {
+    "name": "Troy Polamalu",
+    "class_year": 2020,
+    "position": "S",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Bill Polian",
+    "class_year": 2015,
+    "position": "ATH",
+    "teams": [
+      "BUF",
+      "CAR",
+      "IND"
+    ]
+  },
+  {
+    "name": "Fritz Pollard",
+    "class_year": 2005,
+    "position": "RB",
+    "teams": []
+  },
+  {
+    "name": "John Randle",
+    "class_year": 2010,
+    "position": "DL",
+    "teams": [
+      "MIN",
+      "SEA"
+    ]
+  },
+  {
+    "name": "Hugh \"Shorty\" Ray",
+    "class_year": 1966,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Andre Reed",
+    "class_year": 2014,
+    "position": "WR",
+    "teams": [
+      "BUF",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Ed Reed",
+    "class_year": 2019,
+    "position": "S",
+    "teams": [
+      "BAL",
+      "HOU",
+      "NYJ"
+    ]
+  },
+  {
+    "name": "Dan Reeves",
+    "class_year": 1967,
+    "position": "ATH",
+    "teams": [
+      "LAR"
+    ]
+  },
+  {
+    "name": "Mel Renfro",
+    "class_year": 1996,
+    "position": "S",
+    "teams": [
+      "DAL"
+    ]
+  },
+  {
+    "name": "Darrelle Revis",
+    "class_year": 2023,
+    "position": "CB",
+    "teams": [
+      "KC",
+      "NWE",
+      "NYJ",
+      "TAM"
+    ]
+  },
+  {
+    "name": "Jerry Rice",
+    "class_year": 2010,
+    "position": "WR",
+    "teams": [
+      "LVR",
+      "SEA",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Les Richter",
+    "class_year": 2011,
+    "position": "LB",
+    "teams": [
+      "LAR"
+    ]
+  },
+  {
+    "name": "John Riggins",
+    "class_year": 1992,
+    "position": "RB",
+    "teams": [
+      "NYJ",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Ken Riley",
+    "class_year": 2023,
+    "position": "CB",
+    "teams": [
+      "CIN"
+    ]
+  },
+  {
+    "name": "Jim Ringo",
+    "class_year": 1981,
+    "position": "OL",
+    "teams": [
+      "GNB",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Willie Roaf",
+    "class_year": 2012,
+    "position": "OL",
+    "teams": [
+      "KC",
+      "NOR"
+    ]
+  },
+  {
+    "name": "Dave Robinson",
+    "class_year": 1963,
+    "position": "LB",
+    "teams": [
+      "GNB",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Johnny Robinson",
+    "class_year": 2019,
+    "position": "S",
+    "teams": [
+      "HOU",
+      "KC"
+    ]
+  },
+  {
+    "name": "Andy Robustelli",
+    "class_year": 1971,
+    "position": "DL",
+    "teams": [
+      "LAR",
+      "NYG"
+    ]
+  },
+  {
+    "name": "Art Rooney",
+    "class_year": 1964,
+    "position": "ATH",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Dan Rooney",
+    "class_year": 1955,
+    "position": "ATH",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Pete Rozelle",
+    "class_year": 1985,
+    "position": "ATH",
+    "teams": [
+      "LAR"
+    ]
+  },
+  {
+    "name": "Ed Sabol",
+    "class_year": 2011,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Steve Sabol",
+    "class_year": 2020,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Barry Sanders",
+    "class_year": 2004,
+    "position": "RB",
+    "teams": [
+      "DET"
+    ]
+  },
+  {
+    "name": "Charlie Sanders",
+    "class_year": 2007,
+    "position": "TE",
+    "teams": [
+      "DET"
+    ]
+  },
+  {
+    "name": "Deion Sanders",
+    "class_year": 2011,
+    "position": "CB",
+    "teams": [
+      "ATL",
+      "BAL",
+      "DAL",
+      "SFO",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Warren Sapp",
+    "class_year": 1995,
+    "position": "DL",
+    "teams": [
+      "LVR",
+      "TAM"
+    ]
+  },
+  {
+    "name": "Gale Sayers",
+    "class_year": 1977,
+    "position": "RB",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Joe Schmidt",
+    "class_year": 1973,
+    "position": "LB",
+    "teams": [
+      "DET"
+    ]
+  },
+  {
+    "name": "Tex Schramm",
+    "class_year": 1991,
+    "position": "ATH",
+    "teams": [
+      "DAL",
+      "LAR"
+    ]
+  },
+  {
+    "name": "Junior Seau",
+    "class_year": 2015,
+    "position": "LB",
+    "teams": [
+      "LAC",
+      "MIA",
+      "NWE"
+    ]
+  },
+  {
+    "name": "Lee Roy Selmon",
+    "class_year": 1995,
+    "position": "DL",
+    "teams": [
+      "TAM"
+    ]
+  },
+  {
+    "name": "Richard Seymour",
+    "class_year": 2022,
+    "position": "DL",
+    "teams": [
+      "LVR",
+      "NWE"
+    ]
+  },
+  {
+    "name": "Sterling Sharpe",
+    "class_year": 2025,
+    "position": "WR",
+    "teams": [
+      "GNB"
+    ]
+  },
+  {
+    "name": "Shannon Sharpe",
+    "class_year": 2011,
+    "position": "TE",
+    "teams": [
+      "BAL",
+      "DEN"
+    ]
+  },
+  {
+    "name": "Billy Shaw",
+    "class_year": 1999,
+    "position": "OL",
+    "teams": [
+      "BUF"
+    ]
+  },
+  {
+    "name": "Art Shell",
+    "class_year": 1989,
+    "position": "OL",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Donnie Shell",
+    "class_year": 2020,
+    "position": "DL",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Will Shields",
+    "class_year": 2015,
+    "position": "OL",
+    "teams": [
+      "KC"
+    ]
+  },
+  {
+    "name": "Don Shula",
+    "class_year": 1997,
+    "position": "COACH",
+    "teams": [
+      "IND",
+      "MIA"
+    ]
+  },
+  {
+    "name": "O. J. Simpson",
+    "class_year": 1985,
+    "position": "RB",
+    "teams": [
+      "BUF",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Mike Singletary",
+    "class_year": 1998,
+    "position": "LB",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Duke Slater",
+    "class_year": 2020,
+    "position": "OL",
+    "teams": [
+      "ARI"
+    ]
+  },
+  {
+    "name": "Jackie Slater",
+    "class_year": 2001,
+    "position": "OL",
+    "teams": [
+      "LAR"
+    ]
+  },
+  {
+    "name": "Bruce Smith",
+    "class_year": 2009,
+    "position": "DL",
+    "teams": [
+      "BUF",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Emmitt Smith",
+    "class_year": 2010,
+    "position": "RB",
+    "teams": [
+      "ARI",
+      "DAL"
+    ]
+  },
+  {
+    "name": "Jackie Smith",
+    "class_year": 1994,
+    "position": "TE",
+    "teams": [
+      "ARI",
+      "DAL"
+    ]
+  },
+  {
+    "name": "Mac Speedie",
+    "class_year": 2020,
+    "position": "WR",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Ed Sprinkle",
+    "class_year": 2020,
+    "position": "WR",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Bob St. Clair",
+    "class_year": 1990,
+    "position": "OL",
+    "teams": [
+      "SFO"
+    ]
+  },
+  {
+    "name": "Ken Stabler",
+    "class_year": 2016,
+    "position": "QB",
+    "teams": [
+      "LVR",
+      "NOR",
+      "TEN"
+    ]
+  },
+  {
+    "name": "John Stallworth",
+    "class_year": 2002,
+    "position": "WR",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Dick Stanfel",
+    "class_year": 2016,
+    "position": "OL",
+    "teams": [
+      "DET",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Bart Starr",
+    "class_year": 1977,
+    "position": "QB",
+    "teams": [
+      "GNB"
+    ]
+  },
+  {
+    "name": "Roger Staubach",
+    "class_year": 1985,
+    "position": "QB",
+    "teams": [
+      "DAL"
+    ]
+  },
+  {
+    "name": "Ernie Stautner",
+    "class_year": 1969,
+    "position": "DL",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Jan Stenerud",
+    "class_year": 1991,
+    "position": "K",
+    "teams": [
+      "GNB",
+      "KC",
+      "MIN"
+    ]
+  },
+  {
+    "name": "Dwight Stephenson",
+    "class_year": 1998,
+    "position": "OL",
+    "teams": [
+      "MIA"
+    ]
+  },
+  {
+    "name": "Michael Strahan",
+    "class_year": 2014,
+    "position": "DL",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Hank Stram",
+    "class_year": 2003,
+    "position": "COACH",
+    "teams": [
+      "HOU",
+      "KC",
+      "NOR"
+    ]
+  },
+  {
+    "name": "Ken Strong",
+    "class_year": 1967,
+    "position": "RB",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Joe Stydahar",
+    "class_year": 1967,
+    "position": "OL",
+    "teams": [
+      "ARI",
+      "CHI",
+      "LAR"
+    ]
+  },
+  {
+    "name": "Lynn Swann",
+    "class_year": 2001,
+    "position": "WR",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Paul Tagliabue",
+    "class_year": 2020,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Fran Tarkenton",
+    "class_year": 1986,
+    "position": "QB",
+    "teams": [
+      "MIN",
+      "NYG"
+    ]
+  },
+  {
+    "name": "Charley Taylor",
+    "class_year": 1984,
+    "position": "WR",
+    "teams": [
+      "WAS"
+    ]
+  },
+  {
+    "name": "Jason Taylor",
+    "class_year": 2017,
+    "position": "DL",
+    "teams": [
+      "MIA",
+      "NYJ",
+      "WAS"
+    ]
+  },
+  {
+    "name": "Jim Taylor",
+    "class_year": 1976,
+    "position": "RB",
+    "teams": [
+      "GNB",
+      "NOR"
+    ]
+  },
+  {
+    "name": "Lawrence Taylor",
+    "class_year": 1999,
+    "position": "LB",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Derrick Thomas",
+    "class_year": 2009,
+    "position": "LB",
+    "teams": [
+      "KC"
+    ]
+  },
+  {
+    "name": "Emmitt Thomas",
+    "class_year": 2008,
+    "position": "CB",
+    "teams": [
+      "KC"
+    ]
+  },
+  {
+    "name": "Joe Thomas",
+    "class_year": 2023,
+    "position": "OL",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Thurman Thomas",
+    "class_year": 2007,
+    "position": "RB",
+    "teams": [
+      "BUF",
+      "MIA"
+    ]
+  },
+  {
+    "name": "Zach Thomas",
+    "class_year": 2023,
+    "position": "LB",
+    "teams": [
+      "DAL",
+      "MIA"
+    ]
+  },
+  {
+    "name": "Jim Thorpe",
+    "class_year": 1963,
+    "position": "RB",
+    "teams": [
+      "ARI",
+      "NYG"
+    ]
+  },
+  {
+    "name": "Mick Tingelhoff",
+    "class_year": 2015,
+    "position": "OL",
+    "teams": [
+      "MIN"
+    ]
+  },
+  {
+    "name": "Andre Tippett",
+    "class_year": 2008,
+    "position": "LB",
+    "teams": [
+      "NWE"
+    ]
+  },
+  {
+    "name": "Y. A. Tittle",
+    "class_year": 1971,
+    "position": "QB",
+    "teams": [
+      "IND",
+      "NYG",
+      "SFO"
+    ]
+  },
+  {
+    "name": "LaDainian Tomlinson",
+    "class_year": 2017,
+    "position": "RB",
+    "teams": [
+      "LAC",
+      "NYJ"
+    ]
+  },
+  {
+    "name": "George Trafton",
+    "class_year": 1964,
+    "position": "OL",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Charley Trippi",
+    "class_year": 1968,
+    "position": "RB",
+    "teams": [
+      "ARI"
+    ]
+  },
+  {
+    "name": "Emlen Tunnell",
+    "class_year": 1967,
+    "position": "S",
+    "teams": [
+      "GNB",
+      "NYG"
+    ]
+  },
+  {
+    "name": "Bulldog Turner",
+    "class_year": 1966,
+    "position": "OL",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Johnny Unitas",
+    "class_year": 1979,
+    "position": "QB",
+    "teams": [
+      "IND",
+      "LAC"
+    ]
+  },
+  {
+    "name": "Gene Upshaw",
+    "class_year": 1987,
+    "position": "OL",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Brian Urlacher",
+    "class_year": 2018,
+    "position": "LB",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "Norm Van Brocklin",
+    "class_year": 1971,
+    "position": "QB",
+    "teams": [
+      "LAR",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Steve Van Buren",
+    "class_year": 1965,
+    "position": "RB",
+    "teams": [
+      "PHI"
+    ]
+  },
+  {
+    "name": "Dick Vermeil",
+    "class_year": 2022,
+    "position": "COACH",
+    "teams": [
+      "KC",
+      "LAR",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Adam Vinatieri",
+    "class_year": 2026,
+    "position": "K",
+    "teams": [
+      "IND",
+      "NWE"
+    ]
+  },
+  {
+    "name": "Doak Walker",
+    "class_year": 1986,
+    "position": "RB",
+    "teams": [
+      "DET"
+    ]
+  },
+  {
+    "name": "Bill Walsh",
+    "class_year": 1993,
+    "position": "COACH",
+    "teams": [
+      "SFO"
+    ]
+  },
+  {
+    "name": "DeMarcus Ware",
+    "class_year": 2023,
+    "position": "LB",
+    "teams": [
+      "DAL",
+      "DEN"
+    ]
+  },
+  {
+    "name": "Paul Warfield",
+    "class_year": 1983,
+    "position": "WR",
+    "teams": [
+      "CLE",
+      "MIA"
+    ]
+  },
+  {
+    "name": "Kurt Warner",
+    "class_year": 2017,
+    "position": "QB",
+    "teams": [
+      "ARI",
+      "LAR",
+      "NYG"
+    ]
+  },
+  {
+    "name": "Bob Waterfield",
+    "class_year": 1965,
+    "position": "QB",
+    "teams": [
+      "LAR"
+    ]
+  },
+  {
+    "name": "Mike Webster",
+    "class_year": 1997,
+    "position": "OL",
+    "teams": [
+      "KC",
+      "PIT"
+    ]
+  },
+  {
+    "name": "Roger Wehrli",
+    "class_year": 2007,
+    "position": "CB",
+    "teams": [
+      "ARI"
+    ]
+  },
+  {
+    "name": "Arnie Weinmeister",
+    "class_year": 1984,
+    "position": "DL",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Randy White",
+    "class_year": 1994,
+    "position": "DL",
+    "teams": [
+      "DAL"
+    ]
+  },
+  {
+    "name": "Reggie White",
+    "class_year": 2006,
+    "position": "DL",
+    "teams": [
+      "CAR",
+      "GNB",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Dave Wilcox",
+    "class_year": 2000,
+    "position": "LB",
+    "teams": [
+      "SFO"
+    ]
+  },
+  {
+    "name": "Aeneas Williams",
+    "class_year": 2014,
+    "position": "CB",
+    "teams": [
+      "ARI",
+      "LAR"
+    ]
+  },
+  {
+    "name": "Bill Willis",
+    "class_year": 1977,
+    "position": "OL",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Patrick Willis",
+    "class_year": 2024,
+    "position": "LB",
+    "teams": [
+      "SFO"
+    ]
+  },
+  {
+    "name": "Larry Wilson",
+    "class_year": 1978,
+    "position": "S",
+    "teams": [
+      "ARI"
+    ]
+  },
+  {
+    "name": "Ralph C. Wilson",
+    "class_year": 2009,
+    "position": "ATH",
+    "teams": [
+      "BUF"
+    ]
+  },
+  {
+    "name": "Kellen Winslow",
+    "class_year": 1995,
+    "position": "TE",
+    "teams": [
+      "LAC"
+    ]
+  },
+  {
+    "name": "Alex Wojciechowicz",
+    "class_year": 1968,
+    "position": "OL",
+    "teams": [
+      "DET",
+      "PHI"
+    ]
+  },
+  {
+    "name": "Ron Wolf",
+    "class_year": 2015,
+    "position": "ATH",
+    "teams": [
+      "GNB",
+      "TAM"
+    ]
+  },
+  {
+    "name": "Willie Wood",
+    "class_year": 1989,
+    "position": "S",
+    "teams": [
+      "GNB"
+    ]
+  },
+  {
+    "name": "Charles Woodson",
+    "class_year": 2021,
+    "position": "CB",
+    "teams": [
+      "GNB",
+      "LVR"
+    ]
+  },
+  {
+    "name": "Rod Woodson",
+    "class_year": 2009,
+    "position": "CB",
+    "teams": [
+      "BAL",
+      "LVR",
+      "PIT",
+      "SFO"
+    ]
+  },
+  {
+    "name": "Rayfield Wright",
+    "class_year": 2006,
+    "position": "OL",
+    "teams": [
+      "DAL"
+    ]
+  },
+  {
+    "name": "Ron Yary",
+    "class_year": 2001,
+    "position": "OL",
+    "teams": [
+      "LAR",
+      "MIN"
+    ]
+  },
+  {
+    "name": "Bryant Young",
+    "class_year": 2022,
+    "position": "DL",
+    "teams": [
+      "SFO"
+    ]
+  },
+  {
+    "name": "George Young",
+    "class_year": 2020,
+    "position": "ATH",
+    "teams": [
+      "MIA",
+      "NYG"
+    ]
+  },
+  {
+    "name": "Steve Young",
+    "class_year": 2005,
+    "position": "QB",
+    "teams": [
+      "SFO",
+      "TAM"
+    ]
+  },
+  {
+    "name": "Jack Youngblood",
+    "class_year": 2001,
+    "position": "DL",
+    "teams": [
+      "LAR"
+    ]
+  },
+  {
+    "name": "Gary Zimmerman",
+    "class_year": 2008,
+    "position": "OL",
+    "teams": [
+      "BUF",
+      "DEN",
+      "MIN"
+    ]
+  },
+  {
+    "name": "Harold \"Red\" Grange",
+    "class_year": 1963,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Earl \"Curly\" Lambeau",
+    "class_year": 1963,
+    "position": "ATH",
+    "teams": [
+      "GNB"
+    ]
+  },
+  {
+    "name": "Ray Flaherty",
+    "class_year": 1976,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Mike Michalske",
+    "class_year": 1964,
+    "position": "OL",
+    "teams": []
+  },
+  {
+    "name": "Art Rooney",
+    "class_year": 1964,
+    "position": "COACH",
+    "teams": [
+      "PIT"
+    ]
+  },
+  {
+    "name": "Ken Strong",
+    "class_year": 1967,
+    "position": "ATH",
+    "teams": [
+      "NYG"
+    ]
+  },
+  {
+    "name": "Paul Brown",
+    "class_year": 1967,
+    "position": "COACH",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Sid Luckman",
+    "class_year": 1965,
+    "position": "QB",
+    "teams": [
+      "CHI"
+    ]
+  },
+  {
+    "name": "George Halas",
+    "class_year": 1963,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Johnny Blood",
+    "class_year": 1963,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Jim Thorpe",
+    "class_year": 1963,
+    "position": "ATH",
+    "teams": [
+      "ARI"
+    ]
+  },
+  {
+    "name": "Joseph Carr",
+    "class_year": 1963,
+    "position": "WR",
+    "teams": []
+  },
+  {
+    "name": "Jimmy Conzelman",
+    "class_year": 1964,
+    "position": "COACH",
+    "teams": []
+  },
+  {
+    "name": "Guy Chamberlin",
+    "class_year": 1965,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "John \"Paddy\" Driscoll",
+    "class_year": 1965,
+    "position": "QB",
+    "teams": []
+  },
+  {
+    "name": "Otto Graham",
+    "class_year": 1965,
+    "position": "QB",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Joe Guyon",
+    "class_year": 1966,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Steve Owen",
+    "class_year": 1966,
+    "position": "OL",
+    "teams": []
+  },
+  {
+    "name": "Elroy (Crazylegs) Hirsch",
+    "class_year": 1968,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Marion Motley",
+    "class_year": 1968,
+    "position": "ATH",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Greasy Neale",
+    "class_year": 1969,
+    "position": "COACH",
+    "teams": []
+  },
+  {
+    "name": "Joe Perry",
+    "class_year": 1969,
+    "position": "ATH",
+    "teams": [
+      "SFO"
+    ]
+  },
+  {
+    "name": "Frank \"Bruiser\" Kinard",
+    "class_year": 1971,
+    "position": "OL",
+    "teams": []
+  },
+  {
+    "name": "Vince Lombardi",
+    "class_year": 1971,
+    "position": "OL",
+    "teams": [
+      "PHI"
+    ]
+  },
+  {
+    "name": "Lamar Hunt",
+    "class_year": 1972,
+    "position": "ATH",
+    "teams": [
+      "HOU",
+      "KC"
+    ]
+  },
+  {
+    "name": "Ace Parker",
+    "class_year": 1972,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Lou Groza",
+    "class_year": 1974,
+    "position": "OL",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Dante Lavelli",
+    "class_year": 1975,
+    "position": "ATH",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Len Ford",
+    "class_year": 1976,
+    "position": "DE",
+    "teams": []
+  },
+  {
+    "name": "Bill Willis",
+    "class_year": 1977,
+    "position": "OL",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Lance Alworth",
+    "class_year": 1978,
+    "position": "ATH",
+    "teams": [
+      "LAC"
+    ]
+  },
+  {
+    "name": "Weeb Ewbank",
+    "class_year": 1978,
+    "position": "COACH",
+    "teams": [
+      "NYJ"
+    ]
+  },
+  {
+    "name": "Ron Mix",
+    "class_year": 1979,
+    "position": "OL",
+    "teams": [
+      "LAC"
+    ]
+  },
+  {
+    "name": "Jim Otto",
+    "class_year": 1980,
+    "position": "OL",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "George Blanda",
+    "class_year": 1981,
+    "position": "QB",
+    "teams": [
+      "LVR",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Bobby Bell",
+    "class_year": 1983,
+    "position": "LB",
+    "teams": [
+      "KC"
+    ]
+  },
+  {
+    "name": "Sid Gillman",
+    "class_year": 1983,
+    "position": "COACH",
+    "teams": [
+      "LAC"
+    ]
+  },
+  {
+    "name": "Paul Warfield",
+    "class_year": 1983,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Willie Brown",
+    "class_year": 1984,
+    "position": "CB",
+    "teams": [
+      "DEN",
+      "LVR"
+    ]
+  },
+  {
+    "name": "Arnie Weinmeister",
+    "class_year": 1984,
+    "position": "DL",
+    "teams": [
+      "DET"
+    ]
+  },
+  {
+    "name": "Frank Gatski",
+    "class_year": 1985,
+    "position": "OL",
+    "teams": [
+      "CLE"
+    ]
+  },
+  {
+    "name": "Joe Namath",
+    "class_year": 1985,
+    "position": "QB",
+    "teams": [
+      "NYJ"
+    ]
+  },
+  {
+    "name": "O. J. Simpson",
+    "class_year": 1985,
+    "position": "RB",
+    "teams": [
+      "BUF"
+    ]
+  },
+  {
+    "name": "Ken Houston",
+    "class_year": 1986,
+    "position": "S",
+    "teams": [
+      "TEN"
+    ]
+  },
+  {
+    "name": "Willie Lanier",
+    "class_year": 1986,
+    "position": "LB",
+    "teams": [
+      "KC"
+    ]
+  },
+  {
+    "name": "Larry Csonka",
+    "class_year": 1987,
+    "position": "ATH",
+    "teams": [
+      "MIA"
+    ]
+  },
+  {
+    "name": "Len Dawson",
+    "class_year": 1987,
+    "position": "QB",
+    "teams": [
+      "HOU",
+      "KC"
+    ]
+  },
+  {
+    "name": "John Henry Johnson",
+    "class_year": 1987,
+    "position": "ATH",
+    "teams": [
+      "TEN"
+    ]
+  },
+  {
+    "name": "Don Maynard",
+    "class_year": 1987,
+    "position": "ATH",
+    "teams": [
+      "HOU",
+      "NYJ",
+      "TEN"
+    ]
+  },
+  {
+    "name": "Gene Upshaw",
+    "class_year": 1987,
+    "position": "OL",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Fred Biletnikoff",
+    "class_year": 1988,
+    "position": "ATH",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Art Shell",
+    "class_year": 1989,
+    "position": "OL",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Buck Buchanan",
+    "class_year": 1990,
+    "position": "DL",
+    "teams": [
+      "KC"
+    ]
+  },
+  {
+    "name": "Bob Griese",
+    "class_year": 1990,
+    "position": "QB",
+    "teams": [
+      "MIA"
+    ]
+  },
+  {
+    "name": "Jan Stenerud",
+    "class_year": 1991,
+    "position": "K",
+    "teams": [
+      "KC"
+    ]
+  },
+  {
+    "name": "Al Davis",
+    "class_year": 1992,
+    "position": "COACH",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Bill Walsh",
+    "class_year": 1993,
+    "position": "COACH",
+    "teams": []
+  },
+  {
+    "name": "Larry Little",
+    "class_year": 1993,
+    "position": "OL",
+    "teams": [
+      "LAC",
+      "MIA"
+    ]
+  },
+  {
+    "name": "Bud Grant",
+    "class_year": 1994,
+    "position": "COACH",
+    "teams": []
+  },
+  {
+    "name": "Leroy Kelly",
+    "class_year": 1994,
+    "position": "RB",
+    "teams": []
+  },
+  {
+    "name": "Jim Finks",
+    "class_year": 1995,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Charlie Joiner",
+    "class_year": 1996,
+    "position": "WR",
+    "teams": [
+      "TEN"
+    ]
+  },
+  {
+    "name": "Billy Shaw",
+    "class_year": 1999,
+    "position": "OL",
+    "teams": [
+      "BUF"
+    ]
+  },
+  {
+    "name": "Nick Buoniconti",
+    "class_year": 2001,
+    "position": "LB",
+    "teams": [
+      "MIA",
+      "NWE"
+    ]
+  },
+  {
+    "name": "Marv Levy",
+    "class_year": 2001,
+    "position": "COACH",
+    "teams": []
+  },
+  {
+    "name": "George Allen",
+    "class_year": 2002,
+    "position": "COACH",
+    "teams": []
+  },
+  {
+    "name": "Jim Kelly",
+    "class_year": 2002,
+    "position": "QB",
+    "teams": []
+  },
+  {
+    "name": "Elvin Bethea",
+    "class_year": 2003,
+    "position": "DL",
+    "teams": [
+      "TEN"
+    ]
+  },
+  {
+    "name": "Joe DeLamielleure",
+    "class_year": 2003,
+    "position": "OL",
+    "teams": []
+  },
+  {
+    "name": "Hank Stram",
+    "class_year": 2003,
+    "position": "COACH",
+    "teams": [
+      "HOU",
+      "KC"
+    ]
+  },
+  {
+    "name": "Fritz Pollard",
+    "class_year": 2005,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Steve Young",
+    "class_year": 2005,
+    "position": "QB",
+    "teams": []
+  },
+  {
+    "name": "John Madden",
+    "class_year": 2006,
+    "position": "COACH",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Warren Moon",
+    "class_year": 2006,
+    "position": "QB",
+    "teams": []
+  },
+  {
+    "name": "Reggie White",
+    "class_year": 2006,
+    "position": "DL",
+    "teams": []
+  },
+  {
+    "name": "Emmitt Thomas",
+    "class_year": 2008,
+    "position": "CB",
+    "teams": [
+      "KC"
+    ]
+  },
+  {
+    "name": "Gary Zimmerman",
+    "class_year": 2008,
+    "position": "OL",
+    "teams": []
+  },
+  {
+    "name": "Ralph C. Wilson",
+    "class_year": 2009,
+    "position": "ATH",
+    "teams": [
+      "BUF"
+    ]
+  },
+  {
+    "name": "Curley Culp",
+    "class_year": 2013,
+    "position": "ATH",
+    "teams": [
+      "KC"
+    ]
+  },
+  {
+    "name": "Ron Wolf",
+    "class_year": 2015,
+    "position": "ATH",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Ken Stabler",
+    "class_year": 2016,
+    "position": "QB",
+    "teams": [
+      "LVR"
+    ]
+  },
+  {
+    "name": "Kurt Warner",
+    "class_year": 2017,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Bobby Beathard",
+    "class_year": 2018,
+    "position": "ATH",
+    "teams": [
+      "KC"
+    ]
+  },
+  {
+    "name": "Terrell Owens",
+    "class_year": 2018,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Pat Bowlen",
+    "class_year": 2019,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Johnny Robinson",
+    "class_year": 2019,
+    "position": "S",
+    "teams": [
+      "HOU",
+      "KC"
+    ]
+  },
+  {
+    "name": "Bill Polian",
+    "class_year": 2015,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Winston Hill",
+    "class_year": 2020,
+    "position": "OL",
+    "teams": [
+      "NYJ"
+    ]
+  },
+  {
+    "name": "Duke Slater",
+    "class_year": 2020,
+    "position": "OL",
+    "teams": []
+  },
+  {
+    "name": "Mac Speedie",
+    "class_year": 2020,
+    "position": "ATH",
+    "teams": [
+      "CLE",
+      "DET"
+    ]
+  },
+  {
+    "name": "Art McNally",
+    "class_year": 2022,
+    "position": "ATH",
+    "teams": []
+  },
+  {
+    "name": "Sam Mills",
+    "class_year": 2022,
+    "position": "LB",
+    "teams": []
+  },
+  {
+    "name": "Adam Vinatieri",
+    "class_year": 2026,
+    "position": "K",
+    "teams": []
+  }
+]

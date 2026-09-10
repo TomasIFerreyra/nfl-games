@@ -125,7 +125,7 @@ def main():
     parser.add_argument(
         "--seasons",
         type=str,
-        default=f"2022-{datetime.datetime.now().year}",
+        default=f"2000-{datetime.datetime.now().year}",
         help="Seasons to ingest, e.g. '2023,2024' or '2020-2025'"
     )
     parser.add_argument(

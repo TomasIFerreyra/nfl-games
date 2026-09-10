@@ -1,7 +1,7 @@
 import json
 import logging
 import math
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 import uuid
 
 from redis.asyncio import Redis
@@ -159,6 +159,13 @@ class GridValidationService:
         # Retrieve player summary for response
         player_summary = await cls.resolve_player_summary(session, player_id, redis_client)
 
+        # Resolve all canonical aliases for the submitted player_id
+        # (UUID → lowercase name, gsis_id, pfr_id, and vice versa)
+        player_aliases: Set[str] = await GridPrecomputeService.resolve_player_canonical_ids(
+            session, player_id
+        )
+        logger.debug(f"Player aliases for '{player_id}': {player_aliases}")
+
         # -------------------------------------------------------------
         # 1. Primary Path: Redis O(1) SISMEMBER Check
         # -------------------------------------------------------------
@@ -169,7 +176,11 @@ class GridValidationService:
                 set_exists = await redis_client.exists(sol_redis_key)
                 if set_exists:
                     redis_available = True
-                    is_valid = bool(await redis_client.sismember(sol_redis_key, player_id))
+                    # Check all aliases — valid if any alias is in the solution set
+                    for alias in player_aliases:
+                        if bool(await redis_client.sismember(sol_redis_key, alias)):
+                            is_valid = True
+                            break
                     # Also retrieve cached cardinality
                     cached_card = await redis_client.get(card_redis_key)
                     if cached_card:
@@ -228,7 +239,8 @@ class GridValidationService:
                 valid_solutions = puzzle_data.get("valid_solutions", {})
 
             cell_solutions = set(valid_solutions.get(cell_key, []))
-            is_valid = (player_id in cell_solutions)
+            # Check all player aliases — valid if any alias appears in the solution set
+            is_valid = bool(player_aliases & cell_solutions)
 
             cardinalities = puzzle_data.get("cell_cardinalities", [[10]*3]*3)
             if row_index < len(cardinalities) and col_index < len(cardinalities[row_index]):

@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.player import Player, PlayerTeamStint
 from app.db.models.puzzle import AggregatedAnswerStats, DailyPuzzle
-from app.db.models.stats import Accolade, PlayerSeasonStat
+from app.db.models.stats import Accolade, PlayerCareerStat, PlayerSeasonStat
+from app.domain.criteria_registry import CONFERENCE_MAP, DIVISION_MAP
 from app.domain.player_catalog import (
     CANONICAL_ROUND_1_PICKS,
     CANONICAL_FRANCHISE_MAP,
@@ -36,7 +37,7 @@ class GridValidator:
         Evaluates whether player satisfies an individual criterion.
         Returns: (is_satisfied, failure_reason)
         """
-        c_type = criterion.get("type", "")
+        c_type = str(criterion.get("type", "")).upper()
         c_id = criterion.get("criterion_id", "")
         params = criterion.get("parameters") or {}
 
@@ -79,25 +80,120 @@ class GridValidator:
                 return True, None
             return False, f"Player did not appear in at least 1 regular season game for {franchise_id}."
 
-        # 2. SINGLE SEASON STAT Criterion
+        # 2. DIVISION / CONFERENCE Criterion
+        elif c_type == "DIVISION" or c_id.startswith("DIV_"):
+            div_id = params.get("division_id") or c_id
+            franchise_ids = params.get("franchise_ids") or DIVISION_MAP.get(div_id, [])
+            matched_franchises = (
+                CANONICAL_FRANCHISE_MAP.get(clean_name)
+                or CANONICAL_FRANCHISE_MAP.get(norm_name)
+                or CANONICAL_FRANCHISE_MAP.get(clean_id)
+                or []
+            )
+            if any(f in franchise_ids for f in matched_franchises):
+                return True, None
+
+            query = (
+                select(func.count(PlayerTeamStint.stint_id))
+                .where(
+                    PlayerTeamStint.player_id == player_id,
+                    PlayerTeamStint.franchise_id.in_(franchise_ids),
+                    PlayerTeamStint.games_played >= 1,
+                )
+            )
+            result = await session.execute(query)
+            count = result.scalar() or 0
+            if count > 0:
+                return True, None
+            return False, f"Player never appeared in at least 1 regular season game for division {div_id}."
+
+        elif c_type == "CONFERENCE" or c_id.startswith("CONF_"):
+            conf_id = c_id
+            franchise_ids = params.get("franchise_ids") or CONFERENCE_MAP.get(conf_id, [])
+            matched_franchises = (
+                CANONICAL_FRANCHISE_MAP.get(clean_name)
+                or CANONICAL_FRANCHISE_MAP.get(norm_name)
+                or CANONICAL_FRANCHISE_MAP.get(clean_id)
+                or []
+            )
+            if any(f in franchise_ids for f in matched_franchises):
+                return True, None
+
+            query = (
+                select(func.count(PlayerTeamStint.stint_id))
+                .where(
+                    PlayerTeamStint.player_id == player_id,
+                    PlayerTeamStint.franchise_id.in_(franchise_ids),
+                    PlayerTeamStint.games_played >= 1,
+                )
+            )
+            result = await session.execute(query)
+            count = result.scalar() or 0
+            if count > 0:
+                return True, None
+            return False, f"Player never appeared in at least 1 regular season game for {conf_id}."
+
+        # 3. JOURNEYMAN Criterion
+        elif c_type == "JOURNEYMAN" or "JOURNEYMAN" in c_id:
+            min_f = params.get("min_franchises", 3)
+            matched_franchises = (
+                CANONICAL_FRANCHISE_MAP.get(clean_name)
+                or CANONICAL_FRANCHISE_MAP.get(norm_name)
+                or CANONICAL_FRANCHISE_MAP.get(clean_id)
+                or []
+            )
+            if len(set(matched_franchises)) >= min_f:
+                return True, None
+
+            query = (
+                select(func.count(func.distinct(PlayerTeamStint.franchise_id)))
+                .where(
+                    PlayerTeamStint.player_id == player_id,
+                    PlayerTeamStint.games_played >= 1,
+                )
+            )
+            result = await session.execute(query)
+            f_count = result.scalar() or 0
+            if f_count >= min_f:
+                return True, None
+            return False, f"Player played for {f_count} franchises (required: {min_f}+)."
+
+        # 4. SINGLE SEASON STAT Criterion
         elif c_type == "STAT_SEASON" or "STAT_PASS_" in c_id or "PASS_4000" in c_id:
             stat_name = params.get("stat_name")
             threshold = params.get("threshold", 0)
 
-            # Auto-parse standard criterion IDs if params not explicit
             if not stat_name:
-                if "PASS_4000" in c_id:
+                if "PASS_5000" in c_id:
+                    stat_name, threshold = "passing_yards", 5000
+                elif "PASS_4000" in c_id:
                     stat_name, threshold = "passing_yards", 4000
                 elif "PASS_3000" in c_id:
                     stat_name, threshold = "passing_yards", 3000
+                elif "RUSH_1500" in c_id:
+                    stat_name, threshold = "rushing_yards", 1500
                 elif "RUSH_1000" in c_id:
                     stat_name, threshold = "rushing_yards", 1000
+                elif "REC_1500" in c_id:
+                    stat_name, threshold = "receiving_yards", 1500
                 elif "REC_1000" in c_id:
                     stat_name, threshold = "receiving_yards", 1000
+                elif "SACK_15" in c_id:
+                    stat_name, threshold = "sacks", 15.0
                 elif "SACK_10" in c_id:
                     stat_name, threshold = "sacks", 10.0
                 elif "PASS_TD_30" in c_id:
                     stat_name, threshold = "passing_tds", 30
+                elif "RUSH_TD_15" in c_id:
+                    stat_name, threshold = "rushing_tds", 15
+                elif "RUSH_TD_10" in c_id:
+                    stat_name, threshold = "rushing_tds", 10
+                elif "REC_TD_10" in c_id:
+                    stat_name, threshold = "receiving_tds", 10
+                elif "REC_100" in c_id:
+                    stat_name, threshold = "receptions", 100
+                elif "INT_6" in c_id:
+                    stat_name, threshold = "defensive_interceptions", 6
 
             # Fallback for 4,000+ pass yards
             if stat_name == "passing_yards" and threshold >= 4000:
@@ -127,7 +223,60 @@ class GridValidator:
 
             return False, f"Player never recorded {threshold}+ {stat_name.replace('_', ' ')} in a single regular season."
 
-        # 3. ACCOLADE Criterion
+        # 5. CAREER STAT Criterion
+        elif c_type == "STAT_CAREER" or c_id.startswith("CAREER_"):
+            stat_name = params.get("stat_name")
+            threshold = params.get("threshold", 0)
+
+            # Check PlayerCareerStat table
+            career_attr = getattr(PlayerCareerStat, stat_name, None) if stat_name else None
+            if career_attr:
+                query = select(career_attr).where(PlayerCareerStat.player_id == player_id)
+                res = await session.execute(query)
+                val = res.scalar()
+                if val is not None and val >= threshold:
+                    return True, None
+
+            # Fallback: sum of player season stats
+            season_attr = getattr(PlayerSeasonStat, stat_name, None) if stat_name else None
+            if season_attr:
+                query = select(func.sum(season_attr)).where(PlayerSeasonStat.player_id == player_id)
+                res = await session.execute(query)
+                total = res.scalar()
+                if total is not None and total >= threshold:
+                    return True, None
+
+            return False, f"Player did not reach {threshold}+ career {stat_name.replace('_', ' ')}."
+
+        # 6. POSITIONAL QUIRK Criterion
+        elif c_type == "STAT_POSITIONAL" or c_id.startswith("POS_"):
+            pos = params.get("position")
+            stat_name = params.get("stat_name")
+            threshold = params.get("threshold", 0)
+
+            # Check player position
+            actual_pos = player_obj.primary_position if player_obj else None
+            if not actual_pos:
+                res = await session.execute(select(Player.primary_position).where(Player.player_id == player_id))
+                actual_pos = res.scalar()
+
+            if actual_pos != pos:
+                return False, f"Player position is {actual_pos}, expected {pos}."
+
+            season_attr = getattr(PlayerSeasonStat, stat_name, None) if stat_name else None
+            if season_attr:
+                query = select(func.count(PlayerSeasonStat.stat_id)).where(
+                    PlayerSeasonStat.player_id == player_id,
+                    season_attr >= threshold,
+                )
+                res = await session.execute(query)
+                count = res.scalar() or 0
+                if count > 0:
+                    return True, None
+
+            return False, f"Player never recorded {threshold}+ {stat_name.replace('_', ' ')} as {pos} in a single season."
+
+        # 7. ACCOLADE Criterion
         elif c_type == "ACCOLADE" or "ACCOLADE_" in c_id or "HOF" in c_id:
             accolade_type = params.get("accolade_type")
             if not accolade_type:
@@ -139,8 +288,18 @@ class GridValidator:
                     accolade_type = "FIRST_TEAM_ALL_PRO"
                 elif "MVP" in c_id:
                     accolade_type = "MVP"
+                elif "SUPER_BOWL_MVP" in c_id or "SB_MVP" in c_id:
+                    accolade_type = "SUPER_BOWL_MVP"
                 elif "SUPER_BOWL" in c_id:
                     accolade_type = "SUPER_BOWL_CHAMPION"
+                elif "OROY" in c_id:
+                    accolade_type = "OROY"
+                elif "DROY" in c_id:
+                    accolade_type = "DROY"
+                elif "CPOY" in c_id:
+                    accolade_type = "CPOY"
+                elif "WPMOTY" in c_id:
+                    accolade_type = "WPMOTY"
 
             if accolade_type == "HALL_OF_FAME":
                 if (
@@ -163,51 +322,80 @@ class GridValidator:
                 return True, None
             return False, f"Player did not receive honor: {accolade_type}."
 
-        # 4. DRAFT ROUND Criterion
-        elif c_type == "DRAFT_ROUND" or "DRAFT_RD1" in c_id or "DRAFT" in c_id:
-            target_round = params.get("round", 1)
+        # 8. MULTI-TIME ACCOLADE Criterion
+        elif c_type == "ACCOLADE_COUNT":
+            accolade_type = params.get("accolade_type", "PRO_BOWL")
+            min_count = params.get("min_count", 3)
+            query = (
+                select(func.count(Accolade.accolade_id))
+                .where(
+                    Accolade.player_id == player_id,
+                    Accolade.accolade_type == accolade_type,
+                )
+            )
+            result = await session.execute(query)
+            count = result.scalar() or 0
+            if count >= min_count:
+                return True, None
+            return False, f"Player earned {count} {accolade_type} honors (required: {min_count}+)."
 
-            if target_round == 1 or "RD1" in c_id or "DRAFT_RD1" in c_id:
-                # 1. Check player object draft round
-                if player_obj and player_obj.draft_round == 1:
-                    return True, None
+        # 9. DRAFT ROUND / OVERALL Criterion
+        elif c_type in ("DRAFT_ROUND", "DRAFT_OVERALL") or "DRAFT" in c_id:
+            actual_round = player_obj.draft_round if player_obj else None
+            actual_overall = player_obj.draft_overall if player_obj else None
+            db_name = player_obj.full_name.lower().strip() if player_obj else ""
 
-                # 2. Check draft prefix
-                if clean_id.startswith(("draft2024-", "draft2025-", "draft2026-")):
-                    return True, None
-
-                # 3. Check canonical round 1 set
-                if (
-                    clean_name in CANONICAL_ROUND_1_PICKS
-                    or norm_name in CANONICAL_ROUND_1_PICKS
-                    or clean_id in CANONICAL_ROUND_1_PICKS
-                ):
-                    return True, None
-
-                # 4. Query DB
-                query = select(Player.draft_round, Player.full_name).where(Player.player_id == player_id)
+            if actual_round is None and actual_overall is None:
+                query = select(Player.draft_round, Player.draft_overall, Player.full_name).where(Player.player_id == player_id)
                 result = await session.execute(query)
                 row = result.first()
-                actual_round = row[0] if row else None
-                db_name = (row[1] if row else "").lower().strip()
-                db_norm = db_name.replace(".", "").replace("-", " ")
+                if row:
+                    actual_round, actual_overall, db_name = row[0], row[1], (row[2] or "").lower().strip()
 
-                if actual_round == 1 or db_name in CANONICAL_ROUND_1_PICKS or db_norm in CANONICAL_ROUND_1_PICKS:
+            db_norm = db_name.replace(".", "").replace("-", " ")
+
+            if c_type == "DRAFT_OVERALL" or "TOP5" in c_id:
+                max_overall = params.get("max_overall", 5)
+                if actual_overall and 1 <= actual_overall <= max_overall:
                     return True, None
+                return False, f"Player draft pick was #{actual_overall or 'Undrafted'} (expected Top {max_overall})."
 
-                return False, f"Player was not selected in Round 1 (Drafted: {actual_round or 'Undrafted'})."
+            elif params.get("min_round") or "RD4_PLUS" in c_id:
+                min_rd = params.get("min_round", 4)
+                if actual_round and actual_round >= min_rd:
+                    return True, None
+                return False, f"Player drafted in Round {actual_round or 'Undrafted'} (expected Round {min_rd}+)."
+
+            elif params.get("rounds") or "DAY2" in c_id:
+                rds = params.get("rounds", [2, 3])
+                if actual_round and actual_round in rds:
+                    return True, None
+                return False, f"Player drafted in Round {actual_round or 'Undrafted'} (expected Day 2: {rds})."
+
+            elif params.get("is_undrafted") or "UNDRAFTED" in c_id:
+                if actual_round is None or actual_round == 0:
+                    return True, None
+                return False, f"Player was drafted in Round {actual_round} (expected Undrafted)."
 
             else:
-                if player_obj and player_obj.draft_round == target_round:
-                    return True, None
-                query = select(Player.draft_round).where(Player.player_id == player_id)
-                result = await session.execute(query)
-                actual_round = result.scalar()
+                target_round = params.get("round", 1)
+                if target_round == 1:
+                    if clean_id.startswith(("draft2024-", "draft2025-", "draft2026-")):
+                        return True, None
+                    if (
+                        clean_name in CANONICAL_ROUND_1_PICKS
+                        or norm_name in CANONICAL_ROUND_1_PICKS
+                        or clean_id in CANONICAL_ROUND_1_PICKS
+                        or db_name in CANONICAL_ROUND_1_PICKS
+                        or db_norm in CANONICAL_ROUND_1_PICKS
+                    ):
+                        return True, None
+
                 if actual_round == target_round:
                     return True, None
                 return False, f"Player was not selected in Round {target_round} (Drafted: {actual_round or 'Undrafted'})."
 
-        # 5. COLLEGE Criterion
+        # 10. COLLEGE Criterion
         elif c_type == "COLLEGE":
             target_college = (params.get("college") or "").strip().lower()
 

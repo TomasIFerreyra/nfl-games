@@ -121,145 +121,41 @@ class PuzzlePipelineService:
         """
         Generates, validates, and persists a 3x3 Grid puzzle for the target date:
         1. Seeded deterministically: seed = YYYYMMDD + 9973.
-        2. Template: Rows (2 Franchises + 1 Stat) x Columns (1 Franchise + 1 Accolade + 1 Draft Round).
+        2. Dynamic weighted templates with rotation memory & anti-clash verification.
         3. Solvability invariant: |S_{r, c}| >= k_min for all 9 cells.
         4. Log-density invariant: D in [12.0, 22.0].
         5. Persists precomputed solutions and cardinalities to PostgreSQL & warms Redis.
         """
         start_time = time.perf_counter()
-        seed_value = int(target_date.strftime("%Y%m%d")) + 9973
-        rng = random.Random(seed_value)
+        from app.domain.rotation_tracker import RotationTracker
+        from packages.etl.generator.grid_generator import GridGenerator
 
-        shuffled_franchises = list(FRANCHISE_POOL)
-        rng.shuffle(shuffled_franchises)
-        shuffled_stats = list(STAT_POOL)
-        rng.shuffle(shuffled_stats)
-        shuffled_accolades = list(ACCOLADE_POOL)
-        rng.shuffle(shuffled_accolades)
-        draft_pick = DRAFT_POOL[0]
-
-        reject_count = 0
-        chosen_puzzle_data: Optional[Dict[str, Any]] = None
-
-        # Candidate Search Loop
-        for attempt in range(max_attempts):
-            f_idx = (attempt * 3) % (len(shuffled_franchises) - 4)
-            s_idx = attempt % len(shuffled_stats)
-            a_idx = attempt % len(shuffled_accolades)
-
-            r_fran1 = shuffled_franchises[f_idx]
-            r_fran2 = shuffled_franchises[f_idx + 1]
-            r_stat = shuffled_stats[s_idx]
-
-            c_fran = shuffled_franchises[f_idx + 2]
-            c_acc = shuffled_accolades[a_idx]
-            c_draft = draft_pick
-
-            cand_rows = [r_fran1, r_fran2, r_stat]
-            cand_cols = [c_fran, c_acc, c_draft]
-
-            # Prevent duplicate franchises in same grid
-            cand_franchise_ids = {
-                r_fran1["parameters"]["franchise_id"],
-                r_fran2["parameters"]["franchise_id"],
-                c_fran["parameters"]["franchise_id"],
-            }
-            if len(cand_franchise_ids) < 3:
-                reject_count += 1
-                continue
-
-            # Query qualifying candidate player sets for all 3 rows and 3 cols
-            row_player_sets = [
-                await GridPrecomputeService.get_qualifying_player_ids_for_criterion(session, r)
-                for r in cand_rows
-            ]
-            col_player_sets = [
-                await GridPrecomputeService.get_qualifying_player_ids_for_criterion(session, c)
-                for c in cand_cols
-            ]
-
-            card_matrix = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-            valid_solutions: Dict[str, List[str]] = {}
-            solvability_passed = True
-
-            for r in range(3):
-                for c in range(3):
-                    intersection = row_player_sets[r].intersection(col_player_sets[c])
-                    cnt = len(intersection)
-                    card_matrix[r][c] = cnt
-                    valid_solutions[f"{r}_{c}"] = sorted(list(intersection))
-                    if cnt < k_min:
-                        solvability_passed = False
-                        break
-                if not solvability_passed:
-                    break
-
-            if not solvability_passed:
-                reject_count += 1
-                continue
-
-
-            # Check Log-Density Bound [4.0, 30.0]
-            # With catalog-only data, cell sizes range 3-100+ players.
-            # log10(3)*9 ≈ 4.3 minimum; log10(100)*9 = 18.0 maximum.
-            log_density = cls.calculate_log_density(card_matrix)
-            if log_density > 0 and (log_density < 4.0 or log_density > 30.0):
-                reject_count += 1
-                continue
-
-            # Solvable & balanced candidate accepted!
-            chosen_puzzle_data = {
-                "rows": cand_rows,
-                "columns": cand_cols,
-                "min_cardinality_guarantee": k_min,
-                "cell_cardinalities": card_matrix,
-                "valid_solutions": valid_solutions,
-                "log_density": log_density,
-            }
-            break
-
-        # Fallback if catalog density was too low for strict constraints
-        if not chosen_puzzle_data:
-            logger.warning(
-                f"Grid generator exceeded {max_attempts} attempts for {target_date}. "
-                "Applying verified robust grid fallback."
+        # Fetch recent 14 days of puzzles to load rotation memory
+        tracker = RotationTracker()
+        try:
+            recent_stmt = (
+                select(DailyPuzzle)
+                .where(DailyPuzzle.game_type == "GRID")
+                .order_by(DailyPuzzle.target_date.desc())
+                .limit(14)
             )
-            fallback_rows = [
-                shuffled_franchises[0],
-                shuffled_franchises[1],
-                shuffled_stats[0],
-            ]
-            fallback_cols = [
-                shuffled_franchises[2],
-                shuffled_accolades[0],
-                draft_pick,
-            ]
-            row_player_sets = [
-                await GridPrecomputeService.get_qualifying_player_ids_for_criterion(session, r)
-                for r in fallback_rows
-            ]
-            col_player_sets = [
-                await GridPrecomputeService.get_qualifying_player_ids_for_criterion(session, c)
-                for c in fallback_cols
-            ]
-            card_matrix = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-            valid_solutions = {}
-            for r in range(3):
-                for c in range(3):
-                    inter = row_player_sets[r].intersection(col_player_sets[c])
-                    card_matrix[r][c] = len(inter)
-                    valid_solutions[f"{r}_{c}"] = sorted(list(inter))
+            recent_res = await session.execute(recent_stmt)
+            recent_puzzles = recent_res.scalars().all()
+            tracker.load_from_puzzles(recent_puzzles)
+        except Exception as exc:
+            logger.warning(f"Could not load recent puzzle history for rotation tracker: {exc}")
 
-            chosen_puzzle_data = {
-                "rows": fallback_rows,
-                "columns": fallback_cols,
-                "min_cardinality_guarantee": k_min,
-                "cell_cardinalities": card_matrix,
-                "valid_solutions": valid_solutions,
-                "log_density": cls.calculate_log_density(card_matrix),
-            }
+        puzzle_number = cls.calculate_puzzle_number(target_date)
 
-        # Compute hash and puzzle number
+        chosen_puzzle_data = await GridGenerator.generate_puzzle_data(
+            session=session,
+            target_date=target_date,
+            puzzle_number=puzzle_number,
+            k_min=k_min,
+            max_attempts=max_attempts,
+            rotation_tracker=tracker,
+        )
+
         sol_hash = cls.compute_solution_hash(chosen_puzzle_data)
         puzzle_number = cls.calculate_puzzle_number(target_date)
 
@@ -299,7 +195,7 @@ class PuzzlePipelineService:
         duration_ms = (time.perf_counter() - start_time) * 1000
         logger.info(
             f"Pipeline generated Grid Puzzle #{puzzle_number} for {target_date} "
-            f"in {duration_ms:.2f}ms (Rejects: {reject_count}, Log-Density: {chosen_puzzle_data.get('log_density')})."
+            f"in {duration_ms:.2f}ms (Template: {chosen_puzzle_data.get('template_id')}, Log-Density: {chosen_puzzle_data.get('log_density')})."
         )
         return puzzle
 

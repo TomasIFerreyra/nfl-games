@@ -189,3 +189,112 @@ class Accolade(Base):
         return (
             f"<Accolade(player='{self.player_id}', type='{self.accolade_type}', year={self.season_year})>"
         )
+
+
+class PlayerCareerStat(Base):
+    """
+    Precomputed, aggregated career statistics per player.
+    Aggregates season stats, stints, and accolades for high-speed criteria resolution.
+    """
+    __tablename__ = "player_career_stats"
+    __table_args__ = (
+        Index("idx_career_rush_yds", "rushing_yards"),
+        Index("idx_career_pass_yds", "passing_yards"),
+        Index("idx_career_rec_yds", "receiving_yards"),
+        Index("idx_career_sacks", "sacks"),
+        Index("idx_career_franchises_cnt", "franchises_played_count"),
+    )
+
+    player_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("players.player_id", ondelete="CASCADE"),
+        primary_key=True,
+        comment="Foreign key to players.player_id"
+    )
+    seasons_played: Mapped[int] = mapped_column(
+        SmallInteger,
+        nullable=False,
+        default=0
+    )
+    games_played: Mapped[int] = mapped_column(
+        SmallInteger,
+        nullable=False,
+        default=0
+    )
+    passing_yards: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0
+    )
+    passing_tds: Mapped[int] = mapped_column(
+        SmallInteger,
+        nullable=False,
+        default=0
+    )
+    interceptions: Mapped[int] = mapped_column(
+        SmallInteger,
+        nullable=False,
+        default=0
+    )
+    rushing_yards: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0
+    )
+    rushing_tds: Mapped[int] = mapped_column(
+        SmallInteger,
+        nullable=False,
+        default=0
+    )
+    receptions: Mapped[int] = mapped_column(
+        SmallInteger,
+        nullable=False,
+        default=0
+    )
+    receiving_yards: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0
+    )
+    receiving_tds: Mapped[int] = mapped_column(
+        SmallInteger,
+        nullable=False,
+        default=0
+    )
+    sacks: Mapped[Decimal] = mapped_column(
+        Numeric(5, 1),
+        nullable=False,
+        default=Decimal("0.0"),
+        comment="Career official sacks"
+    )
+    defensive_interceptions: Mapped[int] = mapped_column(
+        SmallInteger,
+        nullable=False,
+        default=0
+    )
+    pro_bowls: Mapped[int] = mapped_column(
+        SmallInteger,
+        nullable=False,
+        default=0
+    )
+    all_pros: Mapped[int] = mapped_column(
+        SmallInteger,
+        nullable=False,
+        default=0
+    )
+    franchises_played_count: Mapped[int] = mapped_column(
+        SmallInteger,
+        nullable=False,
+        default=0,
+        comment="Count of distinct franchises where player logged >= 1 game"
+    )
+
+    # Relationships
+    player: Mapped["Player"] = relationship("Player", backref="career_stat")
+
+    def __repr__(self) -> str:
+        return (
+            f"<PlayerCareerStat(player='{self.player_id}', "
+            f"pass_yd={self.passing_yards}, rush_yd={self.rushing_yards}, rec_yd={self.receiving_yards}, sacks={self.sacks})>"
+        )
+

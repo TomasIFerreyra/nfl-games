@@ -748,16 +748,10 @@ async def test_puzzle_pipeline_deterministic_generation(test_db_session: AsyncSe
     assert len(puzzle.puzzle_data["rows"]) == 3
     assert len(puzzle.puzzle_data["columns"]) == 3
 
-    # Check rows template: 2 Franchises + 1 Stat
-    row_types = [r["type"] for r in puzzle.puzzle_data["rows"]]
-    assert row_types.count("FRANCHISE") == 2
-    assert row_types.count("STAT_SEASON") == 1
-
-    # Check cols template: 1 Franchise + 1 Accolade + 1 Draft Round
-    col_types = [c["type"] for c in puzzle.puzzle_data["columns"]]
-    assert "FRANCHISE" in col_types
-    assert "ACCOLADE" in col_types
-    assert "DRAFT_ROUND" in col_types
+    # Check dynamic template metadata
+    assert "template_id" in puzzle.puzzle_data
+    assert len(puzzle.puzzle_data["rows"]) == 3
+    assert len(puzzle.puzzle_data["columns"]) == 3
 
     # Check precomputed solutions and cardinalities
     assert "valid_solutions" in puzzle.puzzle_data

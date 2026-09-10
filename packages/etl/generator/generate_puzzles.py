@@ -33,59 +33,15 @@ class DailyPuzzleGenerator:
         """
         Generates a 3x3 Grid puzzle for the target date guaranteeing |R_r ∩ C_c| >= k_min.
         """
-        seed_value = int(target_date.strftime("%Y%m%d")) + 9973
-        rng = random.Random(seed_value)
+        # Use dynamic procedural grid generation engine
+        from packages.etl.generator.grid_generator import GridGenerator
 
-        # 1. Fetch available franchises
-        f_res = await session.execute(text("SELECT franchise_id, canonical_name FROM franchises ORDER BY franchise_id"))
-        franchises = [{"id": r[0], "name": r[1]} for r in f_res.fetchall()]
-
-        # Predefined stat and accolade criterion pools
-        stat_pool = [
-            {"id": "STAT_PASS_4000", "type": "STAT_SEASON", "title": "4,000+ Pass Yds Season", "sub": "Single Season", "stat": "passing_yards", "val": 4000},
-            {"id": "STAT_PASS_3000", "type": "STAT_SEASON", "title": "3,000+ Pass Yds Season", "sub": "Single Season", "stat": "passing_yards", "val": 3000},
-            {"id": "STAT_RUSH_1000", "type": "STAT_SEASON", "title": "1,000+ Rush Yds Season", "sub": "Single Season", "stat": "rushing_yards", "val": 1000},
-            {"id": "STAT_REC_1000",  "type": "STAT_SEASON", "title": "1,000+ Rec Yds Season",  "sub": "Single Season", "stat": "receiving_yards", "val": 1000},
-            {"id": "STAT_SACK_10",   "type": "STAT_SEASON", "title": "10.0+ Sacks Season",      "sub": "Single Season", "stat": "sacks", "val": 10.0},
-        ]
-
-        accolade_pool = [
-            {"id": "ACCOLADE_PRO_BOWL",  "type": "ACCOLADE", "title": "Pro Bowl Selection", "sub": "Any Season", "acc": "PRO_BOWL"},
-            {"id": "ACCOLADE_ALL_PRO",   "type": "ACCOLADE", "title": "AP First-Team All-Pro", "sub": "Any Season", "acc": "FIRST_TEAM_ALL_PRO"},
-            {"id": "ACCOLADE_HOF",       "type": "ACCOLADE", "title": "Hall of Fame", "sub": "Inducted", "acc": "HALL_OF_FAME"},
-            {"id": "ACCOLADE_SB_CHAMP",  "type": "ACCOLADE", "title": "Super Bowl Champion", "sub": "Roster", "acc": "SUPER_BOWL_CHAMPION"},
-        ]
-
-        draft_pool = [
-            {"id": "DRAFT_RD1", "type": "DRAFT_ROUND", "title": "1st Round Draft Pick", "sub": "Common Draft", "round": 1},
-        ]
-
-        # In production with loaded data, this loop evaluates bitset/DB counts.
-        # Fallback template with verified NFL franchise intersections:
-        # Green Bay Packers, New York Jets, 4,000+ Pass Yds x Minnesota Vikings, Hall of Fame, 1st Round Pick
-        rows = [
-            {"criterion_id": "FRAN_GNB", "type": "FRANCHISE", "display_title": "Green Bay Packers", "parameters": {"franchise_id": "GNB"}},
-            {"criterion_id": "FRAN_NYJ", "type": "FRANCHISE", "display_title": "New York Jets", "parameters": {"franchise_id": "NYJ"}},
-            {"criterion_id": "STAT_PASS_4000", "type": "STAT_SEASON", "display_title": "4,000+ Pass Yds Season", "subtitle": "Single Regular Season", "parameters": {"stat_name": "passing_yards", "threshold": 4000}},
-        ]
-        columns = [
-            {"criterion_id": "FRAN_MIN", "type": "FRANCHISE", "display_title": "Minnesota Vikings", "parameters": {"franchise_id": "MIN"}},
-            {"criterion_id": "ACCOLADE_HOF", "type": "ACCOLADE", "display_title": "Pro Football Hall of Fame", "subtitle": "Inducted as Player", "parameters": {"accolade_type": "HALL_OF_FAME"}},
-            {"criterion_id": "DRAFT_RD1", "type": "DRAFT_ROUND", "display_title": "1st Round Draft Pick", "subtitle": "NFL Common Draft", "parameters": {"round": 1}},
-        ]
-
-        cell_cardinalities = [
-            [45, 31, 28],
-            [22, 19, 35],
-            [14, 18, 52],
-        ]
-
-        puzzle_data = {
-            "rows": rows,
-            "columns": columns,
-            "min_cardinality_guarantee": k_min,
-            "cell_cardinalities": cell_cardinalities,
-        }
+        puzzle_data = await GridGenerator.generate_puzzle_data(
+            session=session,
+            target_date=target_date,
+            puzzle_number=puzzle_number,
+            k_min=k_min,
+        )
 
         sol_hash = cls.compute_solution_hash(puzzle_data)
 

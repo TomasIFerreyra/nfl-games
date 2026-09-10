@@ -1,3 +1,5 @@
+import json
+import os
 from typing import Any, Dict, List, Optional, Set
 
 # ---------------------------------------------------------------------------
@@ -1331,6 +1333,27 @@ CANONICAL_HALL_OF_FAME_PLAYERS: Set[str] = {
     # Greats who will likely be inducted
     "tony gonzalez", "darrell green", "joe delamielleure", "russ grimm",
 }
+
+# Dynamically load all 480+ Pro Football Hall of Fame inductees and their franchises
+_hof_file = os.path.join(os.path.dirname(__file__), "all_hof_inductees.json")
+if os.path.exists(_hof_file):
+    try:
+        with open(_hof_file, "r", encoding="utf-8") as _f:
+            _hof_data = json.load(_f)
+            for _ind in _hof_data:
+                _raw_name = _ind.get("name", "").strip().lower()
+                if _raw_name:
+                    CANONICAL_HALL_OF_FAME_PLAYERS.add(_raw_name)
+                    CANONICAL_HALL_OF_FAME_PLAYERS.add(_raw_name.replace(".", "").replace("-", " "))
+                    _teams = _ind.get("teams", [])
+                    if _teams:
+                        if _raw_name not in CANONICAL_FRANCHISE_MAP:
+                            CANONICAL_FRANCHISE_MAP[_raw_name] = []
+                        for _t in _teams:
+                            if _t not in CANONICAL_FRANCHISE_MAP[_raw_name]:
+                                CANONICAL_FRANCHISE_MAP[_raw_name].append(_t)
+    except Exception:
+        pass
 
 # ---------------------------------------------------------------------------
 # College Map — player name (lowercase) → college

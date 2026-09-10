@@ -260,10 +260,31 @@
 
 ### 4.1 Daily 3x3 Grid Generation Algorithm
 1. **RNG Seeding:** Seeded deterministically using `seed = YYYYMMDD + 9973`.
-2. **Template Selection:** 2 Franchises + 1 Stat for Rows; 1 Franchise + 1 Accolade + 1 Draft Round for Columns.
-3. **Intersection Cardinality Bound:** Pre-indexed bitset intersections are calculated for all 9 cells $(r, c)$.
-   $$\forall r, c \in \{0, 1, 2\}: |P(R_r) \cap P(C_c)| \ge 3$$
-4. **Density Bound:** Total log-density $D = \sum_{r, c} \log_{10}(|P(R_r) \cap P(C_c)|)$ must fall within $[12.0, 22.0]$.
+2. **Criteria Taxonomy & Catalog (`criteria_registry.py`):** 60+ production criteria categorized into 6 distinct archetypes:
+   - *Hardware & Accolades:* MVP, Super Bowl MVP, OROY, DROY, CPOY, WPMOTY, Pro Bowl (1+, 3+, 5+), All-Pro (1+, 3+), Super Bowl Champion, Hall of Fame.
+   - *College Pedigree & Draft Quirks:* Power 5 bluebloods (Alabama, Ohio State, LSU, USC, etc.), 1st Round, Top 5 Overall, Day 2 (Rounds 2-3), Round 4+, Undrafted.
+   - *Career Totals:* 10k+ Rush, 40k+ Pass, 300+ Pass TD, 10k+ Rec, 100+ Sacks, 50+ Sacks, etc.
+   - *Single-Season Milestones:* 4k/5k Pass Yds, 30 Pass TD, 1k/1.5k Rush Yds, 10/15 Rush TD, 1k/1.5k Rec Yds, 10 Rec TD, 100 Rec, 10/15 Sacks, 6 INTs.
+   - *Positional Quirks:* QB 500+ Rush Yds, TE 10+ Rec TD, TE 1,000+ Rec Yds, RB 50+ Rec.
+   - *Era / Franchise / Divisions:* 32 Franchises, 8 Divisions (AFC/NFC East/North/South/West), Conferences, Journeymen (3+ or 4+ franchises).
+3. **Weighted Dynamic Templates (`grid_templates.py`):**
+   - *Template A (Franchise Heavy, 35%):* Rows (2 Franchises + 1 Era/Division/Journeyman) x Cols (1 Franchise + 1 Accolade + 1 Stat).
+   - *Template B (College & Draft, 25%):* Rows (1 Franchise + 1 College + 1 Career Stat) x Cols (2 Franchises + 1 Draft Status).
+   - *Template C (Accolade & Hardware Milestone, 25%):* Rows (2 Franchises + 1 Hardware) x Cols (1 Division + 1 Season Milestone + 1 College).
+   - *Template D (Journeyman & Positional Quirks, 15%):* Rows (1 Franchise + 1 Journeyman/Division + 1 Positional Quirk) x Cols (1 Franchise + 1 Career Stat + 1 Draft/Accolade).
+4. **Anti-Clash & Domain Invariants:**
+   - Prohibits duplicate criteria, duplicate franchises, and duplicate divisions on any axis.
+   - Prohibits franchise-division containment overlap on intersecting cells (e.g., NE Patriots intersecting with AFC East).
+   - Prohibits mutually exclusive draft rounds (Round 1 vs Round 4+/Undrafted) and conflicting positions.
+5. **Rotation Memory & Recency Fatigue (`rotation_tracker.py`):**
+   - Implements decay penalties across 7–14 days history: $\le 3$ days (0.0x weight, locked out), 4–7 days (0.25x weight), 8–14 days (0.60x weight), $>14$ days (1.00x weight).
+6. **Intersection Cardinality & Density Bounds:**
+   - Pre-indexed bitset/relational intersections are calculated for all 9 cells $(r, c)$:
+     $$\forall r, c \in \{0, 1, 2\}: |P(R_r) \cap P(C_c)| \ge 3$$
+   - Total log-density $D = \sum_{r, c} \log_{10}(|P(R_r) \cap P(C_c)|)$ evaluated against target range $[12.0, 22.0]$.
+7. **Coverage Validation & Fallback Ladder:**
+   - Evaluates PostgreSQL database coverage before activation; criteria with $<50$ qualifying players are set to `is_active = False`.
+   - Fallback ladder automatically selects next template if candidate attempts fail cardinality constraints within 50 attempts.
 
 ### 4.2 Bayesian Rarity Scoring Formula
 $$R^*(p, c) = \frac{n(p, c) + M \cdot \pi(p, c)}{N(c) + M} \times 100$$
