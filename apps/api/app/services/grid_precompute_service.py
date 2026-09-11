@@ -621,7 +621,7 @@ class GridPrecomputeService:
             {"criterion_id": "FRAN_SFO", "type": "FRANCHISE", "display_title": "San Francisco 49ers", "parameters": {"franchise_id": "SFO"}},
             {"criterion_id": "FRAN_PHI", "type": "FRANCHISE", "display_title": "Philadelphia Eagles", "parameters": {"franchise_id": "PHI"}},
             {"criterion_id": "FRAN_PIT", "type": "FRANCHISE", "display_title": "Pittsburgh Steelers", "parameters": {"franchise_id": "PIT"}},
-            {"criterion_id": "FRAN_NWE", "type": "FRANCHISE", "display_title": "New England Patriots", "parameters": {"franchise_id": "NWE"}},
+            {"criterion_id": "FRAN_NE",  "type": "FRANCHISE", "display_title": "New England Patriots", "parameters": {"franchise_id": "NE"}},
             {"criterion_id": "FRAN_MIA", "type": "FRANCHISE", "display_title": "Miami Dolphins", "parameters": {"franchise_id": "MIA"}},
             {"criterion_id": "FRAN_BUF", "type": "FRANCHISE", "display_title": "Buffalo Bills", "parameters": {"franchise_id": "BUF"}},
             {"criterion_id": "FRAN_BAL", "type": "FRANCHISE", "display_title": "Baltimore Ravens", "parameters": {"franchise_id": "BAL"}},

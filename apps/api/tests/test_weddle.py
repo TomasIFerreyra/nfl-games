@@ -148,7 +148,7 @@ def test_2026_preseason_player_moves():
     """
     aj = WeddleService.get_player("A.J. Brown")
     assert aj is not None
-    assert aj.team in ("NE", "NWE"), f"Expected A.J. Brown to be on NE, got {aj.team}"
+    assert aj.team == "NE", f"Expected A.J. Brown to be on NE, got {aj.team}"
     assert aj.conference == "AFC"
     assert aj.division == "East"
     assert aj.jersey_number == 1, f"Expected A.J. Brown to wear #1, got #{aj.jersey_number}"
@@ -174,6 +174,6 @@ def test_2026_preseason_player_moves():
 
     maye = WeddleService.get_player("Drake Maye")
     assert maye is not None
-    assert maye.team in ("NE", "NWE")
+    assert maye.team == "NE", f"Expected Drake Maye to be on NE, got {maye.team}"
     assert maye.jersey_number == 10
 

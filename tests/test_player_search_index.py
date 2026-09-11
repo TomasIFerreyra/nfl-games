@@ -59,10 +59,10 @@ async def seeded_session(db_session_factory):
     async with db_session_factory() as session:
         # 1. Franchises
         kc = Franchise(franchise_id="KC", canonical_name="Kansas City Chiefs", established_year=1960)
-        nwe = Franchise(franchise_id="NWE", canonical_name="New England Patriots", established_year=1960)
+        ne = Franchise(franchise_id="NE", canonical_name="New England Patriots", established_year=1960)
         ind = Franchise(franchise_id="IND", canonical_name="Indianapolis Colts", established_year=1953)
         lar = Franchise(franchise_id="LAR", canonical_name="Los Angeles Rams", established_year=1937)
-        session.add_all([kc, nwe, ind, lar])
+        session.add_all([kc, ne, ind, lar])
         await session.flush()
 
         # 2. Players

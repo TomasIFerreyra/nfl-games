@@ -89,7 +89,7 @@ HISTORICAL_PLAYER_CAREERS: List[Dict[str, Any]] = [
         "name": "Tom Brady", "pos": "QB", "rookie": 2000, "final": 2022,
         "draft_yr": 2000, "draft_rd": 6, "draft_ovr": 199, "college": "Michigan", "pfr_id": "BradTo00", "gsis_id": "00-0019596",
         "stints": [
-            *[("NWE", yr, 16) for yr in range(2000, 2020)],
+            *[("NE", yr, 16) for yr in range(2000, 2020)],
             *[("TAM", yr, 16 if yr < 2021 else 17) for yr in range(2020, 2023)],
         ]
     },
@@ -165,8 +165,8 @@ HISTORICAL_PLAYER_CAREERS: List[Dict[str, Any]] = [
             *[("MIN", yr, 16) for yr in range(1998, 2005)],
             ("LVR", 2005, 16),
             ("LVR", 2006, 13),
-            *[("NWE", yr, 16) for yr in range(2007, 2010)],
-            ("NWE", 2010, 4),
+            *[("NE", yr, 16) for yr in range(2007, 2010)],
+            ("NE", 2010, 4),
             ("MIN", 2010, 4),
             ("TEN", 2010, 8),
             ("SFO", 2012, 16),

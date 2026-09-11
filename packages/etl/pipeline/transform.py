@@ -54,8 +54,8 @@ FRANCHISE_MAP: Dict[str, str] = {
     "GNB": "GNB",
     "SF": "SFO",
     "SFO": "SFO",
-    "NE": "NWE",
-    "NWE": "NWE",
+    "NE": "NE",
+    "NWE": "NE",
     "NO": "NOR",
     "NOR": "NOR",
     "TB": "TAM",
@@ -97,7 +97,7 @@ class NFLDataTransformer:
         if clean_abbr in ("SFO", "SF"):
             return "SFO"
         if clean_abbr in ("NWE", "NE"):
-            return "NWE"
+            return "NE"
         if clean_abbr in ("NOR", "NO"):
             return "NOR"
         if clean_abbr in ("TAM", "TB"):

@@ -71,8 +71,8 @@ BEGIN
     IF rec.jersey_number <> 10 THEN
         RAISE EXCEPTION 'ASSERTION FAILED for Drake Maye: expected jersey #10, got #%', rec.jersey_number;
     END IF;
-    IF rec.franchise_id <> 'NWE' THEN
-        RAISE EXCEPTION 'ASSERTION FAILED for Drake Maye: expected team NWE, got %', rec.franchise_id;
+    IF rec.franchise_id <> 'NE' THEN
+        RAISE EXCEPTION 'ASSERTION FAILED for Drake Maye: expected team NE, got %', rec.franchise_id;
     END IF;
     IF rec.headshot_url IS NULL OR length(rec.headshot_url) < 10 THEN
         RAISE EXCEPTION 'ASSERTION FAILED for Drake Maye: missing headshot URL';
@@ -143,8 +143,8 @@ BEGIN
     IF rec.jersey_number <> 1 THEN
         RAISE EXCEPTION 'ASSERTION FAILED for A.J. Brown: expected jersey #1, got #%', rec.jersey_number;
     END IF;
-    IF rec.franchise_id <> 'NWE' THEN
-        RAISE EXCEPTION 'ASSERTION FAILED for A.J. Brown: expected team NWE (Patriots), got %', rec.franchise_id;
+    IF rec.franchise_id <> 'NE' THEN
+        RAISE EXCEPTION 'ASSERTION FAILED for A.J. Brown: expected team NE (Patriots), got %', rec.franchise_id;
     END IF;
     IF rec.headshot_url IS NULL OR length(rec.headshot_url) < 10 THEN
         RAISE EXCEPTION 'ASSERTION FAILED for A.J. Brown: missing headshot URL';

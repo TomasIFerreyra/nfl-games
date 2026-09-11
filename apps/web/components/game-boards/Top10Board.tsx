@@ -18,7 +18,7 @@ interface Top10BoardProps {
 
 // Fallback leaderboard for offline resilience (ONLY for demo-top10-001)
 const DEMO_TOP10_LEADERBOARD: Record<string, Top10Entry> = {
-  "p-brady-tom01": { rank: 1, player_id: "p-brady-tom01", player_name: "Tom Brady", metric_value: 649, formatted_value: "649 TDs", active_years: "2000-2022", primary_franchise: "NWE" },
+  "p-brady-tom01": { rank: 1, player_id: "p-brady-tom01", player_name: "Tom Brady", metric_value: 649, formatted_value: "649 TDs", active_years: "2000-2022", primary_franchise: "NE" },
   "p-brees-dre01": { rank: 2, player_id: "p-brees-dre01", player_name: "Drew Brees", metric_value: 571, formatted_value: "571 TDs", active_years: "2001-2020", primary_franchise: "NOR" },
   "p-manning-pey01": { rank: 3, player_id: "p-manning-pey01", player_name: "Peyton Manning", metric_value: 539, formatted_value: "539 TDs", active_years: "1998-2015", primary_franchise: "IND" },
   "p-favre-bre01": { rank: 4, player_id: "p-favre-bre01", player_name: "Brett Favre", metric_value: 508, formatted_value: "508 TDs", active_years: "1991-2010", primary_franchise: "GNB" },

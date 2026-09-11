@@ -512,12 +512,12 @@ class ConnectionsTaxonomyRegistry:
 
         tier3_defs = [
             ConnectionsCategoryDefinition(
-                category_id="DUAL_FRAN_NWE_NYJ",
+                category_id="DUAL_FRAN_NE_NYJ",
                 tier=ConnectionsTier.GOLD,
                 title="Played for both NE Patriots & NY Jets",
                 explanation="All 4 players appeared in regular season games for both New England and the New York Jets.",
                 archetype=ConnectionsCategoryArchetype.DUAL_FRANCHISE,
-                parameters={"franchise_a": "NWE", "franchise_b": "NYJ"},
+                parameters={"franchise_a": "NE", "franchise_b": "NYJ"},
             ),
             ConnectionsCategoryDefinition(
                 category_id="DUAL_FRAN_GNB_MIN",

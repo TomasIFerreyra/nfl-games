@@ -97,11 +97,11 @@ def test_anti_clash_duplicate_franchises():
 def test_anti_clash_franchise_division_overlap():
     """Rejects grids where a franchise intersects with the division it belongs to."""
     # NE Patriots belongs to AFC East
-    r0 = registry.get_criterion("FRAN_NWE")
+    r0 = registry.get_criterion("FRAN_NE")
     r1 = registry.get_criterion("FRAN_DAL")
     r2 = registry.get_criterion("STAT_RUSH_1000")
 
-    c0 = registry.get_criterion("DIV_AFC_EAST")  # Clash with NWE!
+    c0 = registry.get_criterion("DIV_AFC_EAST")  # Clash with NE!
     c1 = registry.get_criterion("ACCOLADE_HOF")
     c2 = registry.get_criterion("DRAFT_RD1")
 

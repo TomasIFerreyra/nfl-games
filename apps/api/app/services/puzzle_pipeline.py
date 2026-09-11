@@ -43,7 +43,7 @@ FRANCHISE_POOL: List[Dict[str, Any]] = [
     {"criterion_id": "FRAN_LVR", "type": "FRANCHISE", "display_title": "Las Vegas Raiders", "parameters": {"franchise_id": "LVR"}},
     {"criterion_id": "FRAN_MIA", "type": "FRANCHISE", "display_title": "Miami Dolphins", "parameters": {"franchise_id": "MIA"}},
     {"criterion_id": "FRAN_MIN", "type": "FRANCHISE", "display_title": "Minnesota Vikings", "parameters": {"franchise_id": "MIN"}},
-    {"criterion_id": "FRAN_NWE", "type": "FRANCHISE", "display_title": "New England Patriots", "parameters": {"franchise_id": "NWE"}},
+    {"criterion_id": "FRAN_NE",  "type": "FRANCHISE", "display_title": "New England Patriots", "parameters": {"franchise_id": "NE"}},
     {"criterion_id": "FRAN_NOR", "type": "FRANCHISE", "display_title": "New Orleans Saints", "parameters": {"franchise_id": "NOR"}},
     {"criterion_id": "FRAN_NYG", "type": "FRANCHISE", "display_title": "New York Giants", "parameters": {"franchise_id": "NYG"}},
     {"criterion_id": "FRAN_NYJ", "type": "FRANCHISE", "display_title": "New York Jets", "parameters": {"franchise_id": "NYJ"}},

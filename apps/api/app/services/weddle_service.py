@@ -251,7 +251,9 @@ class WeddleService:
             return
 
         for raw in ACTIVE_NFL_PLAYERS:
-            team_meta = TEAM_METADATA.get(raw["team"].upper(), {"conference": "AFC", "division": "East"})
+            team_raw = raw["team"].upper()
+            team_norm = "NE" if team_raw in ("NE", "NWE") else team_raw
+            team_meta = TEAM_METADATA.get(team_norm, {"conference": "AFC", "division": "East"})
             pos = raw["position"].upper()
             side = "Offense" if pos in OFFENSIVE_POSITIONS else "Defense"
             h_inches = raw["height_inches"]
@@ -270,7 +272,7 @@ class WeddleService:
                 player_id=raw["player_id"],
                 full_name=raw["full_name"],
                 headshot_url=raw.get("headshot_url"),
-                team=raw["team"].upper(),
+                team=team_norm,
                 side_of_ball=side,
                 position=pos,
                 conference=team_meta["conference"],
@@ -338,7 +340,8 @@ class WeddleService:
             PlayerTeamStint.player_id == db_player.player_id
         ).order_by(PlayerTeamStint.season_year.desc())
         stint = (await session.execute(stmt_stint)).scalars().first()
-        team_code = stint.franchise_id.upper() if stint else "KC"
+        raw_team_code = stint.franchise_id.upper() if stint else "KC"
+        team_code = "NE" if raw_team_code in ("NE", "NWE") else raw_team_code
 
         # Position normalization
         raw_pos = (getattr(db_player, "primary_position", None) or "QB").upper()
@@ -464,7 +467,9 @@ class WeddleService:
         - Jersey Number: green (exact) / yellow (within ±2) / gray (with higher/lower direction)
         """
         # 1. Team
-        team_status = "green" if guessed.team == target.team else "gray"
+        norm_guessed_team = "NE" if guessed.team.upper() in ("NE", "NWE") else guessed.team.upper()
+        norm_target_team = "NE" if target.team.upper() in ("NE", "NWE") else target.team.upper()
+        team_status = "green" if norm_guessed_team == norm_target_team else "gray"
 
         # 2. Side of Ball
         side_status = "green" if guessed.side_of_ball == target.side_of_ball else "gray"

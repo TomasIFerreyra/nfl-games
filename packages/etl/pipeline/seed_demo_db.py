@@ -28,7 +28,7 @@ FOUNDATIONAL_FRANCHISES = [
     {"franchise_id": "LVR", "canonical_name": "Las Vegas Raiders", "established_year": 1960},
     {"franchise_id": "MIA", "canonical_name": "Miami Dolphins", "established_year": 1966},
     {"franchise_id": "MIN", "canonical_name": "Minnesota Vikings", "established_year": 1961},
-    {"franchise_id": "NWE", "canonical_name": "New England Patriots", "established_year": 1960},
+    {"franchise_id": "NE",  "canonical_name": "New England Patriots", "established_year": 1960},
     {"franchise_id": "NOR", "canonical_name": "New Orleans Saints", "established_year": 1967},
     {"franchise_id": "NYG", "canonical_name": "New York Giants", "established_year": 1925},
     {"franchise_id": "NYJ", "canonical_name": "New York Jets", "established_year": 1960},

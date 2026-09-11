@@ -64,7 +64,7 @@ class CriterionDefinition:
 # Canonical NFL Division & Conference Mappings
 # =====================================================================
 DIVISION_MAP: Dict[str, List[str]] = {
-    "DIV_AFC_EAST": ["BUF", "MIA", "NWE", "NYJ"],
+    "DIV_AFC_EAST": ["BUF", "MIA", "NE", "NYJ"],
     "DIV_AFC_NORTH": ["BAL", "CIN", "CLE", "PIT"],
     "DIV_AFC_SOUTH": ["HOU", "IND", "JAX", "TEN"],
     "DIV_AFC_WEST": ["DEN", "KC", "LAC", "LVR"],
@@ -76,7 +76,7 @@ DIVISION_MAP: Dict[str, List[str]] = {
 
 CONFERENCE_MAP: Dict[str, List[str]] = {
     "CONF_AFC": [
-        "BUF", "MIA", "NWE", "NYJ",
+        "BUF", "MIA", "NE", "NYJ",
         "BAL", "CIN", "CLE", "PIT",
         "HOU", "IND", "JAX", "TEN",
         "DEN", "KC", "LAC", "LVR",
@@ -111,7 +111,7 @@ FRANCHISE_METADATA: Dict[str, Dict[str, str]] = {
     "LVR": {"name": "Las Vegas Raiders", "div": "DIV_AFC_WEST", "conf": "CONF_AFC"},
     "MIA": {"name": "Miami Dolphins", "div": "DIV_AFC_EAST", "conf": "CONF_AFC"},
     "MIN": {"name": "Minnesota Vikings", "div": "DIV_NFC_NORTH", "conf": "CONF_NFC"},
-    "NWE": {"name": "New England Patriots", "div": "DIV_AFC_EAST", "conf": "CONF_AFC"},
+    "NE":  {"name": "New England Patriots", "div": "DIV_AFC_EAST", "conf": "CONF_AFC"},
     "NOR": {"name": "New Orleans Saints", "div": "DIV_NFC_SOUTH", "conf": "CONF_NFC"},
     "NYG": {"name": "New York Giants", "div": "DIV_NFC_EAST", "conf": "CONF_NFC"},
     "NYJ": {"name": "New York Jets", "div": "DIV_AFC_EAST", "conf": "CONF_AFC"},
@@ -433,6 +433,8 @@ class CriteriaRegistry:
         self._criteria[criterion.criterion_id] = criterion
 
     def get_criterion(self, criterion_id: str) -> Optional[CriterionDefinition]:
+        if criterion_id == "FRAN_NWE":
+            return self._criteria.get("FRAN_NE")
         return self._criteria.get(criterion_id)
 
     def get_all_criteria(self, active_only: bool = True) -> List[CriterionDefinition]:
