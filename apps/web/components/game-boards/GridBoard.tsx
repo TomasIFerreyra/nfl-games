@@ -1,13 +1,24 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { GridCriterion, GridValidateResponse } from "@nfl-games/contracts";
+import React, { useState, useEffect, useCallback } from "react";
+import { GridCriterion, GridPuzzleSummaryResponse, GridValidateResponse } from "@nfl-games/contracts";
 import { PlayerSearchModal } from "@/components/PlayerSearchModal";
 import { SearchPlayerItem } from "@/lib/search/playerSearch";
 import { GameStateManager } from "@/lib/storage/gameState";
-import { CheckCircle2, AlertCircle, RotateCcw } from "lucide-react";
+import { CheckCircle2, AlertCircle, RotateCcw, Flag, Eye, Loader2 } from "lucide-react";
 import { getTeamLogoUrl } from "@/lib/teamLogos";
 import { PlayerTile } from "@/components/PlayerTile";
+
+export interface GridCellItem {
+  player_id: string;
+  player_name: string;
+  position?: string | null;
+  headshot_url?: string | null;
+  is_correct: boolean;
+  rarity_score?: number | null;
+  is_revealed_missed?: boolean;
+  pick_percentage?: number | null;
+}
 
 const CriterionHeaderCell: React.FC<{ criterion: GridCriterion }> = ({ criterion }) => {
   const [imgError, setImgError] = useState(false);
@@ -374,18 +385,95 @@ const DEMO_CELL_ANSWERS: Record<string, string[]> = {
 export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns }) => {
   const [selectedCell, setSelectedCell] = useState<{ r: number; c: number } | null>(null);
   const [guessesRemaining, setGuessesRemaining] = useState(9);
-  const [cells, setCells] = useState<Record<string, {
-    player_id: string;
-    player_name: string;
-    position?: string | null;
-    headshot_url?: string | null;
-    is_correct: boolean;
-    rarity_score: number;
-  } | null>>({});
+  const [cells, setCells] = useState<Record<string, GridCellItem | null>>({});
   const [usedPlayerIds, setUsedPlayerIds] = useState<string[]>([]);
   const [lastValidation, setLastValidation] = useState<GridValidateResponse | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [isRevealing, setIsRevealing] = useState(false);
   const [confirmRestart, setConfirmRestart] = useState(false);
+  const [confirmSurrender, setConfirmSurrender] = useState(false);
+
+  const revealMissedAnswers = useCallback(
+    async (
+      currentCells: Record<string, GridCellItem | null>,
+      remainingGuesses: number,
+      currentUsed: string[]
+    ) => {
+      setIsRevealing(true);
+      let summaryData: GridPuzzleSummaryResponse | null = null;
+
+      try {
+        const res = await fetch(`/api/v1/grid/puzzles/${puzzleId}/summary`);
+        if (res.ok) {
+          summaryData = await res.json();
+        }
+      } catch (err) {
+        console.warn("Failed to fetch grid puzzle summary from backend:", err);
+      }
+
+      const updatedCells: Record<string, GridCellItem | null> = { ...currentCells };
+
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+          const cellKey = `r${r}_c${c}`;
+          const coordKey = `${r}_${c}`;
+
+          // Only populate cells that are not correctly solved by the user
+          if (!updatedCells[cellKey] || !updatedCells[cellKey]?.is_correct) {
+            const sol =
+              summaryData?.cell_solutions?.[coordKey] || summaryData?.cell_solutions?.[cellKey];
+
+            if (sol) {
+              updatedCells[cellKey] = {
+                player_id: sol.player_id,
+                player_name: sol.full_name,
+                position: sol.position || null,
+                headshot_url: sol.headshot_url || null,
+                is_correct: false,
+                is_revealed_missed: true,
+                pick_percentage: sol.pick_percentage ?? null,
+                rarity_score: null,
+              };
+            } else {
+              // Resilient offline / demo fallback answer
+              const fallbackPlayerId = DEMO_CELL_ANSWERS[cellKey]?.[0] || `demo-player-${r}-${c}`;
+              const cleanFallbackName = fallbackPlayerId
+                .replace("p-", "")
+                .replace("-", " ")
+                .replace(/\d+/g, "")
+                .trim()
+                .split(" ")
+                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(" ");
+
+              updatedCells[cellKey] = {
+                player_id: fallbackPlayerId,
+                player_name: cleanFallbackName || "Top Pick",
+                position: null,
+                headshot_url: null,
+                is_correct: false,
+                is_revealed_missed: true,
+                pick_percentage: null,
+                rarity_score: null,
+              };
+            }
+          }
+        }
+      }
+
+      setCells(updatedCells);
+      setIsRevealing(false);
+
+      // Persist revealed state to localStorage so page refresh retains solved grid view
+      const state = GameStateManager.loadState();
+      state.games.grid.guesses_remaining = remainingGuesses;
+      state.games.grid.cells = updatedCells;
+      state.games.grid.used_player_ids = currentUsed;
+      state.games.grid.is_completed = true;
+      GameStateManager.saveState(state);
+    },
+    [puzzleId]
+  );
 
   const handleRestart = () => {
     if (!confirmRestart) {
@@ -393,7 +481,7 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
       return;
     }
     // Reset in-memory state
-    const emptyCells = {
+    const emptyCells: Record<string, GridCellItem | null> = {
       r0_c0: null, r0_c1: null, r0_c2: null,
       r1_c0: null, r1_c1: null, r1_c2: null,
       r2_c0: null, r2_c1: null, r2_c2: null,
@@ -404,24 +492,47 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
     setLastValidation(null);
     setSelectedCell(null);
     setConfirmRestart(false);
+    setConfirmSurrender(false);
     // Reset localStorage
     const state = GameStateManager.loadState();
     state.games.grid.guesses_remaining = 9;
     state.games.grid.cells = emptyCells;
     state.games.grid.used_player_ids = [];
     state.games.grid.is_completed = false;
+    state.games.grid.is_surrendered = false;
     GameStateManager.saveState(state);
   };
 
-
+  const handleSurrender = async () => {
+    if (!confirmSurrender) {
+      setConfirmSurrender(true);
+      return;
+    }
+    setConfirmSurrender(false);
+    setGuessesRemaining(0);
+    GameStateManager.updateStreak("grid", false);
+    await revealMissedAnswers(cells, 0, usedPlayerIds);
+  };
 
   // Load from local storage
   useEffect(() => {
     const state = GameStateManager.loadState();
     if (state.games.grid.puzzle_id === puzzleId) {
       setGuessesRemaining(state.games.grid.guesses_remaining);
-      setCells(state.games.grid.cells);
+      setCells(state.games.grid.cells as Record<string, GridCellItem | null>);
       setUsedPlayerIds(state.games.grid.used_player_ids);
+
+      // If already completed and has unfilled slots, ensure answers are revealed
+      if (state.games.grid.is_completed && state.games.grid.guesses_remaining === 0) {
+        const hasUnrevealed = Object.values(state.games.grid.cells).some((c) => c === null);
+        if (hasUnrevealed) {
+          revealMissedAnswers(
+            state.games.grid.cells as Record<string, GridCellItem | null>,
+            0,
+            state.games.grid.used_player_ids
+          );
+        }
+      }
     } else {
       // Initialize with new puzzle
       state.games.grid.puzzle_id = puzzleId;
@@ -433,12 +544,13 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
       };
       state.games.grid.used_player_ids = [];
       state.games.grid.is_completed = false;
+      state.games.grid.is_surrendered = false;
       GameStateManager.saveState(state);
       setGuessesRemaining(9);
-      setCells(state.games.grid.cells);
+      setCells(state.games.grid.cells as Record<string, GridCellItem | null>);
       setUsedPlayerIds([]);
     }
-  }, [puzzleId]);
+  }, [puzzleId, revealMissedAnswers]);
 
   const handleCellClick = (r: number, c: number) => {
     const cellKey = `r${r}_c${c}`;
@@ -521,7 +633,7 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
     const nextRemaining = guessesRemaining - 1;
     setGuessesRemaining(nextRemaining);
 
-    const nextCells = { ...cells };
+    const nextCells: Record<string, GridCellItem | null> = { ...cells };
     const nextUsed = [...usedPlayerIds, player.id];
 
     if (data.is_valid) {
@@ -538,13 +650,18 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
     }
 
     // Check completion condition
-    const solvedCount = Object.values(nextCells).filter((c) => c !== null).length;
+    const solvedCount = Object.values(nextCells).filter((c) => c !== null && c.is_correct).length;
     const isComplete = solvedCount === 9 || nextRemaining <= 0;
 
     if (isComplete && solvedCount === 9) {
       GameStateManager.updateStreak("grid", true);
     } else if (nextRemaining <= 0 && solvedCount < 9) {
       GameStateManager.updateStreak("grid", false);
+      // Auto-reveal missed cells with easiest top picks
+      await revealMissedAnswers(nextCells, nextRemaining, nextUsed);
+      setIsValidating(false);
+      setSelectedCell(null);
+      return;
     }
 
     // Update local storage
@@ -559,12 +676,11 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
     setSelectedCell(null);
   };
 
-
-
-  const solvedCount = Object.values(cells).filter((c) => c !== null).length;
+  const solvedCount = Object.values(cells).filter((c) => c !== null && c.is_correct).length;
   const totalRarity = Object.values(cells)
-    .filter((c) => c !== null)
+    .filter((c) => c !== null && c.is_correct)
     .reduce((acc, curr) => acc + (curr?.rarity_score || 0), 0);
+  const isGameOver = guessesRemaining <= 0 || solvedCount === 9;
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
@@ -572,18 +688,54 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
       <div className="w-full flex items-center justify-between mb-4 px-2">
         <div className="flex items-center space-x-2">
           <span className="text-xs uppercase tracking-wider text-gray-400">Guesses Left:</span>
-          <span className={`text-lg font-black ${guessesRemaining <= 2 ? "text-rose-500" : "text-white"}`}>
+          <span
+            className={`text-lg font-black ${
+              guessesRemaining <= 2 ? "text-rose-500" : "text-white"
+            }`}
+          >
             {guessesRemaining} / 9
           </span>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3 sm:space-x-4">
           <div className="text-xs text-gray-400">
             Solved: <span className="font-bold text-white">{solvedCount}/9</span>
           </div>
           {solvedCount > 0 && (
             <div className="text-xs text-gray-400">
               Rarity: <span className="font-bold text-amber-400">{totalRarity.toFixed(1)}</span>
+            </div>
+          )}
+
+          {/* Give Up / Surrender Action */}
+          {!isGameOver && (
+            <div className="flex items-center">
+              {confirmSurrender ? (
+                <div className="flex items-center space-x-1 animate-in fade-in zoom-in-95 duration-150">
+                  <button
+                    onClick={handleSurrender}
+                    className="px-2.5 py-1 rounded-full bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold shadow-xs transition-colors"
+                  >
+                    Reveal answers?
+                  </button>
+                  <button
+                    onClick={() => setConfirmSurrender(false)}
+                    className="px-2 py-1 rounded-full border border-border bg-surface hover:bg-surface-raised text-gray-300 text-[11px] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmSurrender(true)}
+                  className="flex items-center space-x-1 px-2.5 py-1 rounded-full border border-border bg-surface hover:bg-rose-950/40 hover:border-rose-800 text-gray-400 hover:text-rose-300 text-[11px] font-medium transition-colors"
+                  title="Give up and view unrevealed easiest answers"
+                >
+                  <Flag className="h-3 w-3 shrink-0" />
+                  <span>Give Up</span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -639,8 +791,10 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
                     playerId={cellData.player_id}
                     position={cellData.position}
                     headshotUrl={cellData.headshot_url}
-                    rarityScore={cellData.rarity_score}
-                    variant="grid"
+                    rarityScore={cellData.is_correct ? cellData.rarity_score : null}
+                    pickPercentage={cellData.pick_percentage}
+                    isMissed={Boolean(cellData.is_revealed_missed)}
+                    variant={cellData.is_revealed_missed ? "grid-missed" : "grid"}
                     disabled
                   />
                 </div>
@@ -648,7 +802,7 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
                 <button
                   key={cellKey}
                   type="button"
-                  disabled={guessesRemaining <= 0 || isValidating}
+                  disabled={guessesRemaining <= 0 || isValidating || isRevealing}
                   onClick={() => handleCellClick(rIdx, cIdx)}
                   className={`aspect-square w-full rounded-xl border p-1.5 sm:p-2.5 flex flex-col items-center justify-center text-center transition-all duration-200 relative overflow-hidden group ${
                     guessesRemaining <= 0
@@ -667,7 +821,7 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
       </div>
 
       {/* Game Over / Summary Card */}
-      {(guessesRemaining <= 0 || solvedCount === 9) && (
+      {isGameOver && (
         <div className="w-full mt-6 p-4 rounded-xl bg-surface border border-border text-center animate-in fade-in duration-300">
           <h3 className="text-lg font-bold text-white">
             {solvedCount === 9 ? "🏆 Immaculate! Grid Complete!" : "Game Over"}
@@ -676,7 +830,13 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
             You solved {solvedCount} of 9 cells. Total Rarity Score:{" "}
             <span className="font-bold text-amber-400">{totalRarity.toFixed(1)}</span>
           </p>
-          <div className="mt-3 flex items-center justify-center gap-2">
+          {solvedCount < 9 && (
+            <p className="text-[11px] text-gray-400 mt-1 flex items-center justify-center gap-1.5">
+              <span className="inline-block w-2.5 h-2.5 rounded-xs bg-rose-950 border border-red-500" />
+              Unrevealed cells are highlighted with the top / easiest picks.
+            </p>
+          )}
+          <div className="mt-4 flex items-center justify-center gap-2">
             {confirmRestart ? (
               <>
                 <button
@@ -698,13 +858,12 @@ export const GridBoard: React.FC<GridBoardProps> = ({ puzzleId, rows, columns })
                 className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-border bg-surface hover:bg-surface-raised text-gray-300 text-xs font-medium transition-colors"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
-                Restart
+                Play Again / Restart
               </button>
             )}
           </div>
         </div>
       )}
-
 
       {/* Search Modal */}
       <PlayerSearchModal

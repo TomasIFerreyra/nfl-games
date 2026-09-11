@@ -38,3 +38,27 @@ class GridValidateResponse(BaseModel):
     possible_answers_count: Optional[int] = None
     failed_criteria: Optional[List[str]] = None
     reason: Optional[str] = None
+
+
+class GridCellSolution(BaseModel):
+    player_id: str
+    full_name: str
+    headshot_url: Optional[str] = None
+    position: Optional[str] = None
+    pick_percentage: Optional[float] = Field(
+        None,
+        description="Selection percentage among all valid user picks for this cell, or null if cold-start fallback"
+    )
+
+
+class GridPuzzleSummaryResponse(BaseModel):
+    puzzle_id: Union[uuid.UUID, str]
+    cell_solutions: Dict[str, GridCellSolution] = Field(
+        ...,
+        description="Map of cell coordinates ('0_0', '0_1', ... '2_2') to their easiest/top-picked solution entity"
+    )
+
+
+class GridSurrenderRequest(BaseModel):
+    puzzle_id: Union[uuid.UUID, str]
+

@@ -61,6 +61,20 @@ export interface GridValidateResponse {
     failed_criteria?: string[] | null;
     reason?: string | null;
 }
+export interface GridCellSolution {
+    player_id: string;
+    full_name: string;
+    headshot_url?: string | null;
+    position?: string | null;
+    pick_percentage?: number | null;
+}
+export interface GridPuzzleSummaryResponse {
+    puzzle_id: string;
+    cell_solutions: Record<string, GridCellSolution>;
+}
+export interface GridSurrenderRequest {
+    puzzle_id: string;
+}
 export interface ConnectionsItem {
     item_id: string;
     display_text: string;
@@ -153,14 +167,20 @@ export interface ClientLocalStorageState {
             puzzle_id: string;
             guesses_remaining: number;
             is_completed: boolean;
+            is_surrendered?: boolean;
             cells: Record<string, {
                 player_id: string;
                 player_name: string;
+                position?: string | null;
+                headshot_url?: string | null;
                 is_correct: boolean;
-                rarity_score: number;
+                rarity_score?: number | null;
+                is_revealed_missed?: boolean;
+                pick_percentage?: number | null;
             } | null>;
             used_player_ids: string[];
             summary_checksum: string;
+            cell_solutions?: Record<string, GridCellSolution>;
         };
         connections: {
             active_date: string;

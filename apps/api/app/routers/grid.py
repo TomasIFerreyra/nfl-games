@@ -8,7 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.redis import get_redis
 from app.db.session import get_async_session
-from app.schemas.grid import GridValidateRequest, GridValidateResponse
+from app.schemas.grid import (
+    GridPuzzleSummaryResponse,
+    GridSurrenderRequest,
+    GridValidateRequest,
+    GridValidateResponse,
+)
 from app.services.grid_precompute_service import GridPrecomputeService
 from app.services.grid_validation_service import GridValidationService
 
@@ -147,4 +152,78 @@ async def generate_grid_puzzle(
         "columns": puzzle.puzzle_data.get("columns"),
         "cell_cardinalities": puzzle.puzzle_data.get("cell_cardinalities"),
     }
+
+
+@router.get(
+    "/puzzles/{puzzle_id}/summary",
+    response_model=GridPuzzleSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Fetch end-of-game summary solutions with easiest/top-picked answers per cell",
+    responses={
+        200: {
+            "description": "9 cell solution map containing easiest/highest pick percentage players or cold-start prominence fallbacks.",
+            "model": GridPuzzleSummaryResponse,
+        },
+        404: {
+            "description": "Puzzle ID not found or game type mismatch.",
+        },
+    },
+)
+@router.get(
+    "/{puzzle_id}/summary",
+    response_model=GridPuzzleSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+async def get_grid_puzzle_summary(
+    puzzle_id: str,
+    session: AsyncSession = Depends(get_async_session),
+    redis_client: Optional[Redis] = Depends(get_redis),
+) -> GridPuzzleSummaryResponse:
+    """
+    End-of-Game Unrevealed Answers endpoint:
+    - Called ONLY once client marks game completed (9 guesses exhausted or surrender).
+    - For each cell (r, c), returns the player with highest selection percentage.
+    - Cold-Start Fallback: If N(c) == 0, returns most prominent historical player with pick_percentage: null.
+    """
+    try:
+        summary = await GridValidationService.get_puzzle_summary(
+            session=session,
+            puzzle_id=puzzle_id,
+            redis_client=redis_client,
+        )
+        return summary
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        )
+    except Exception as exc:
+        logger.error(f"Error fetching grid puzzle summary: {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while generating puzzle summary.",
+        )
+
+
+@router.post(
+    "/surrender-reveal",
+    response_model=GridPuzzleSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Surrender current grid game and reveal easiest answers for all uncompleted cells",
+)
+async def surrender_and_reveal_grid(
+    payload: GridSurrenderRequest,
+    session: AsyncSession = Depends(get_async_session),
+    redis_client: Optional[Redis] = Depends(get_redis),
+) -> GridPuzzleSummaryResponse:
+    """
+    Surrender endpoint: Client marks game surrendered and immediately receives solution summary.
+    """
+    return await get_grid_puzzle_summary(
+        puzzle_id=str(payload.puzzle_id),
+        session=session,
+        redis_client=redis_client,
+    )
+
 

@@ -40,11 +40,13 @@ class GridPrecomputeService:
     async def get_qualifying_player_ids_for_criterion(
         cls,
         session: AsyncSession,
-        criterion: Dict[str, Any],
+        criterion: Union[str, Dict[str, Any]],
     ) -> Set[str]:
         """
         Executes a single relational query resolving all qualifying player_ids for a given criterion.
         """
+        if isinstance(criterion, str):
+            criterion = {"criterion_id": criterion}
         c_type = str(criterion.get("type", "")).upper()
         c_id = criterion.get("criterion_id", "")
         params = criterion.get("parameters") or {}

@@ -9,9 +9,12 @@ FRANCHISE_MAP: Dict[str, str] = {
     "HOU": "TEN",  # Historically Oilers before 1997; modern Texans handled by season context
     "OIL": "TEN",
     "TEN": "TEN",
+    # Texans
+    "HST": "HOU",
     # Rams Lineage
     "RAM": "LAR",
     "STL": "LAR",
+    "SL": "LAR",
     "LA": "LAR",
     "LAR": "LAR",
     # Raiders Lineage
@@ -26,14 +29,24 @@ FRANCHISE_MAP: Dict[str, str] = {
     # Cardinals Lineage
     "PHO": "ARI",
     "CRD": "ARI",
+    "ARZ": "ARI",
     "ARI": "ARI",
     # Washington Lineage
     "BOS": "WAS",
+    "WSH": "WAS",
     "WAS": "WAS",
     "WFT": "WAS",
     # Browns / Ravens Rule: strictly separated
     "BAL": "BAL",
+    "BLT": "BAL",
     "CLE": "CLE",
+    "CLV": "CLE",
+    # Jaguars
+    "JAC": "JAX",
+    "JAX": "JAX",
+    # Colts
+    "CLT": "IND",
+    "IND": "IND",
     # Standard franchise acronyms
     "KC": "KC",
     "KAN": "KC",
@@ -61,12 +74,40 @@ class NFLDataTransformer:
         Disambiguates shared city abbreviations (e.g., Houston Oilers vs Houston Texans).
         """
         clean_abbr = team_abbr.strip().upper() if team_abbr else ""
-        if clean_abbr == "HOU":
+        if clean_abbr in ("HOU", "HST", "OIL"):
             # Houston Oilers (<= 1996) vs Houston Texans (>= 2002)
             return "TEN" if season_year <= 1996 else "HOU"
-        if clean_abbr == "BAL":
+        if clean_abbr in ("BAL", "BLT"):
             # Baltimore Colts (<= 1983) vs Baltimore Ravens (>= 1996)
             return "IND" if season_year <= 1983 else "BAL"
+        if clean_abbr in ("LAR", "LA", "RAM", "STL", "SL"):
+            return "LAR"
+        if clean_abbr in ("LAC", "SD", "SDG"):
+            return "LAC"
+        if clean_abbr in ("LVR", "LV", "OAK", "RAI"):
+            return "LVR"
+        if clean_abbr in ("ARI", "ARZ", "PHO", "CRD"):
+            return "ARI"
+        if clean_abbr in ("WAS", "WSH", "WFT", "BOS"):
+            return "WAS"
+        if clean_abbr in ("CLE", "CLV"):
+            return "CLE"
+        if clean_abbr in ("GNB", "GB"):
+            return "GNB"
+        if clean_abbr in ("SFO", "SF"):
+            return "SFO"
+        if clean_abbr in ("NWE", "NE"):
+            return "NWE"
+        if clean_abbr in ("NOR", "NO"):
+            return "NOR"
+        if clean_abbr in ("TAM", "TB"):
+            return "TAM"
+        if clean_abbr in ("KC", "KAN"):
+            return "KC"
+        if clean_abbr in ("JAX", "JAC"):
+            return "JAX"
+        if clean_abbr in ("IND", "CLT"):
+            return "IND"
         return FRANCHISE_MAP.get(clean_abbr, clean_abbr)
 
     @classmethod

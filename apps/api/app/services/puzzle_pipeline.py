@@ -128,7 +128,7 @@ class PuzzlePipelineService:
         """
         start_time = time.perf_counter()
         from app.domain.rotation_tracker import RotationTracker
-        from packages.etl.generator.grid_generator import GridGenerator
+        from app.domain.grid_generator import GridGenerator
 
         # Fetch recent 14 days of puzzles to load rotation memory
         tracker = RotationTracker()

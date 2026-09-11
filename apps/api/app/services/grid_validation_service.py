@@ -9,10 +9,14 @@ from redis.exceptions import RedisError
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models.player import Player
+from app.db.models.player import Player, PlayerTeamStint
 from app.db.models.puzzle import AggregatedAnswerStats, DailyPuzzle
-from app.domain.player_catalog import CANONICAL_ROUND_1_PICKS, KNOWN_FALLBACK_PLAYERS
-from app.schemas.grid import GridValidateResponse
+from app.domain.player_catalog import (
+    CANONICAL_HALL_OF_FAME_PLAYERS,
+    CANONICAL_ROUND_1_PICKS,
+    KNOWN_FALLBACK_PLAYERS,
+)
+from app.schemas.grid import GridCellSolution, GridPuzzleSummaryResponse, GridValidateResponse
 from app.schemas.player import PlayerSummary
 from app.services.grid_precompute_service import GridPrecomputeService
 
@@ -398,3 +402,223 @@ class GridValidationService:
                 pick_percentage=pick_percentage,
             )
             session.add(new_record)
+
+    @classmethod
+    async def _find_most_prominent_player(
+        cls,
+        session: AsyncSession,
+        candidate_ids: List[str],
+    ) -> Optional[str]:
+        """
+        Cold-Start Fallback: Given a list of valid player candidates for an unattempted cell,
+        determines the most prominent historical player (e.g. Hall of Fame inductees, career games started, etc.).
+        """
+        if not candidate_ids:
+            return None
+
+        candidates_set = {str(c).strip() for c in candidate_ids if str(c).strip()}
+        if not candidates_set:
+            return None
+
+        # 1. Query PostgreSQL Player and Stints to rank by career games started and HOF status
+        cand_list = list(candidates_set)
+        cand_lowers = [c.lower() for c in cand_list]
+
+        stmt = (
+            select(
+                Player.player_id,
+                Player.full_name,
+                func.coalesce(func.sum(PlayerTeamStint.games_started), 0).label("total_gs"),
+                func.coalesce(func.sum(PlayerTeamStint.games_played), 0).label("total_gp"),
+            )
+            .outerjoin(PlayerTeamStint, Player.player_id == PlayerTeamStint.player_id)
+            .where(
+                or_(
+                    Player.player_id.in_(cand_list),
+                    Player.gsis_id.in_(cand_list),
+                    Player.pfr_id.in_(cand_list),
+                    func.lower(Player.full_name).in_(cand_lowers),
+                )
+            )
+            .group_by(Player.player_id, Player.full_name)
+        )
+        result = await session.execute(stmt)
+        db_players = result.fetchall()
+
+        if db_players:
+            scored = []
+            for p_id, full_name, total_gs, total_gp in db_players:
+                name_clean = full_name.lower().strip()
+                score = int(total_gs) * 2 + int(total_gp)
+                if name_clean in CANONICAL_HALL_OF_FAME_PLAYERS or p_id in CANONICAL_HALL_OF_FAME_PLAYERS:
+                    score += 100000
+                scored.append((score, p_id))
+
+            scored.sort(key=lambda x: x[0], reverse=True)
+            return scored[0][1]
+
+        # 2. Check catalog names directly against CANONICAL_HALL_OF_FAME_PLAYERS
+        for c in cand_list:
+            c_clean = c.lower().strip()
+            if c_clean in CANONICAL_HALL_OF_FAME_PLAYERS:
+                return c
+
+        # 3. Fallback to the first canonical candidate in list
+        return cand_list[0]
+
+    @classmethod
+    async def get_puzzle_summary(
+        cls,
+        session: AsyncSession,
+        puzzle_id: Union[uuid.UUID, str],
+        redis_client: Optional[Redis] = None,
+    ) -> GridPuzzleSummaryResponse:
+        """
+        Retrieves the end-of-game solution summary for all 9 cells of a 3x3 Grid puzzle:
+        - For each cell, returns the easiest / top pick with the highest selection percentage.
+        - Cold-Start Fallback: If no submissions exist (N(c) = 0), returns the most prominent historical player
+          with pick_percentage: null.
+        """
+        str_puzzle_id = str(puzzle_id)
+
+        # 1. Fetch Puzzle
+        puzzle = None
+        is_valid_uuid = False
+        try:
+            uid = uuid.UUID(str_puzzle_id) if isinstance(puzzle_id, str) else puzzle_id
+            is_valid_uuid = True
+            stmt = select(DailyPuzzle).where(DailyPuzzle.puzzle_id == uid)
+            result = await session.execute(stmt)
+            puzzle = result.scalar_one_or_none()
+        except (ValueError, TypeError, AttributeError):
+            is_valid_uuid = False
+
+        if not puzzle and not is_valid_uuid:
+            stmt = (
+                select(DailyPuzzle)
+                .where(DailyPuzzle.game_type == "GRID")
+                .order_by(DailyPuzzle.target_date.desc())
+                .limit(1)
+            )
+            result = await session.execute(stmt)
+            puzzle = result.scalar_one_or_none()
+
+        if not puzzle or puzzle.game_type != "GRID":
+            raise ValueError(f"Valid 3x3 Grid puzzle not found for puzzle_id: '{str_puzzle_id}'")
+
+        raw_data = puzzle.puzzle_data
+        puzzle_data = json.loads(raw_data) if isinstance(raw_data, str) else dict(raw_data)
+        valid_solutions = puzzle_data.get("valid_solutions")
+
+        if not valid_solutions:
+            await GridPrecomputeService.precompute_and_store_puzzle(
+                session=session,
+                puzzle_id=puzzle.puzzle_id,
+                redis_client=redis_client,
+            )
+            await session.refresh(puzzle)
+            raw_data = puzzle.puzzle_data
+            puzzle_data = json.loads(raw_data) if isinstance(raw_data, str) else dict(raw_data)
+            valid_solutions = puzzle_data.get("valid_solutions", {})
+
+        cell_solutions_map: Dict[str, GridCellSolution] = {}
+
+        # 2. Iterate through all 9 cells (r, c)
+        for r in range(3):
+            for c in range(3):
+                cell_key = f"{r}_{c}"
+                r_key = f"r{r}_c{c}"
+                total_redis_key = f"puzzle:{str_puzzle_id}:cell:{cell_key}:total"
+                picks_redis_key = f"puzzle:{str_puzzle_id}:cell:{cell_key}:picks"
+
+                top_player_id: Optional[str] = None
+                top_percentage: Optional[float] = None
+                cell_total_picks: int = 0
+                cell_player_picks: int = 0
+
+                # Check Redis for submission statistics
+                if redis_client is not None:
+                    try:
+                        cached_total = await redis_client.get(total_redis_key)
+                        if cached_total and int(cached_total) > 0:
+                            cell_total_picks = int(cached_total)
+                            raw_picks = await redis_client.hgetall(picks_redis_key)
+                            if raw_picks:
+                                # Determine player with max picks
+                                sorted_picks = sorted(
+                                    raw_picks.items(),
+                                    key=lambda item: int(item[1]),
+                                    reverse=True,
+                                )
+                                if sorted_picks:
+                                    best_pid_bytes, best_count_bytes = sorted_picks[0]
+                                    top_player_id = (
+                                        best_pid_bytes.decode("utf-8")
+                                        if isinstance(best_pid_bytes, bytes)
+                                        else str(best_pid_bytes)
+                                    )
+                                    cell_player_picks = int(best_count_bytes)
+                                    top_percentage = round(
+                                        (cell_player_picks / cell_total_picks) * 100.0, 1
+                                    )
+                    except (RedisError, Exception) as exc:
+                        logger.warning(f"Redis lookup failed for summary cell {cell_key}: {exc}")
+
+                # Database Fallback for statistics if Redis was empty or offline
+                if not top_player_id and is_valid_uuid:
+                    try:
+                        uid_val = uuid.UUID(str_puzzle_id)
+                        stats_query = (
+                            select(AggregatedAnswerStats)
+                            .where(
+                                AggregatedAnswerStats.puzzle_id == uid_val,
+                                AggregatedAnswerStats.cell_identifier.in_([r_key, cell_key]),
+                            )
+                            .order_by(AggregatedAnswerStats.selection_count.desc())
+                        )
+                        stats_records = (await session.execute(stats_query)).scalars().all()
+                        if stats_records:
+                            total_from_db = sum(s.selection_count for s in stats_records)
+                            if total_from_db > 0:
+                                best_record = stats_records[0]
+                                top_player_id = best_record.player_id
+                                top_percentage = round(
+                                    (best_record.selection_count / total_from_db) * 100.0, 1
+                                )
+                    except Exception as exc:
+                        logger.warning(f"DB stats lookup failed for summary cell {cell_key}: {exc}")
+
+                # Cold-Start Fallback: N(c) = 0 -> evaluate prominence from valid solution candidate set
+                if not top_player_id:
+                    candidates = valid_solutions.get(cell_key) or valid_solutions.get(r_key) or []
+                    top_player_id = await cls._find_most_prominent_player(session, candidates)
+                    top_percentage = None
+
+                # Resolve player details
+                if top_player_id:
+                    summary = await cls.resolve_player_summary(session, top_player_id, redis_client)
+                    solution_item = GridCellSolution(
+                        player_id=summary.player_id,
+                        full_name=summary.full_name,
+                        headshot_url=summary.headshot_url,
+                        position=summary.position,
+                        pick_percentage=top_percentage,
+                    )
+                else:
+                    solution_item = GridCellSolution(
+                        player_id=f"fallback-{r}_{c}",
+                        full_name="N/A",
+                        headshot_url=None,
+                        position=None,
+                        pick_percentage=None,
+                    )
+
+                # Store with both coordinate formats for robust client consumption
+                cell_solutions_map[cell_key] = solution_item
+                cell_solutions_map[r_key] = solution_item
+
+        return GridPuzzleSummaryResponse(
+            puzzle_id=puzzle.puzzle_id,
+            cell_solutions=cell_solutions_map,
+        )
+

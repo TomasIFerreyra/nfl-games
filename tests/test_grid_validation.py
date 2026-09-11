@@ -202,6 +202,12 @@ class MockRedis:
             self._hashes[key][field] = str(val)
             return val
 
+    async def hgetall(self, key: str) -> Dict[str, str]:
+        if not self.is_connected:
+            raise ConnectionError("Redis server unavailable")
+        async with self._lock:
+            return dict(self._hashes.get(key, {}))
+
     async def delete(self, *keys: str) -> int:
         if not self.is_connected:
             raise ConnectionError("Redis server unavailable")
@@ -762,5 +768,195 @@ async def test_puzzle_pipeline_deterministic_generation(test_db_session: AsyncSe
     # Check Redis warming
     card_redis_key = f"puzzle:{puzzle.puzzle_id}:cell:0_0:cardinality"
     assert await mock_redis.exists(card_redis_key) == 1
+
+
+# =====================================================================
+# Unit & Integration Tests: End-of-Game Unrevealed Answers & Summary
+# =====================================================================
+@pytest.mark.asyncio
+async def test_grid_summary_with_user_picks(test_db_session: AsyncSession, mock_redis: MockRedis):
+    """
+    Tests that summary returns the player with highest pick percentage when submissions exist.
+    """
+    puzzle_id = str(uuid.uuid4())
+    p1 = Player(
+        player_id="00-0019596",
+        full_name="Tom Brady",
+        first_name="Tom",
+        last_name="Brady",
+        primary_position="QB",
+        rookie_year=2000,
+        draft_round=6,
+        is_active=False,
+    )
+    p2 = Player(
+        player_id="00-0023459",
+        full_name="Aaron Rodgers",
+        first_name="Aaron",
+        last_name="Rodgers",
+        primary_position="QB",
+        rookie_year=2005,
+        draft_round=1,
+        is_active=True,
+    )
+    puzzle = DailyPuzzle(
+        puzzle_id=uuid.UUID(puzzle_id),
+        target_date=date(2026, 9, 12),
+        game_type="GRID",
+        puzzle_number=106,
+        puzzle_data={
+            "valid_solutions": {"0_0": ["00-0019596", "00-0023459"]},
+            "cell_cardinalities": [[10]*3]*3,
+        },
+        solution_hash="hash_summary_1",
+    )
+    test_db_session.add_all([p1, p2, puzzle])
+    await test_db_session.commit()
+
+    # Simulate 100 total picks in cell 0_0: 70 for Tom Brady, 30 for Aaron Rodgers
+    await mock_redis.set(f"puzzle:{puzzle_id}:cell:0_0:total", "100")
+    await mock_redis.hincrby(f"puzzle:{puzzle_id}:cell:0_0:picks", "00-0019596", 70)
+    await mock_redis.hincrby(f"puzzle:{puzzle_id}:cell:0_0:picks", "00-0023459", 30)
+
+    summary = await GridValidationService.get_puzzle_summary(
+        session=test_db_session,
+        puzzle_id=puzzle_id,
+        redis_client=mock_redis,
+    )
+
+    assert str(summary.puzzle_id) == puzzle_id
+    assert "0_0" in summary.cell_solutions
+    sol_0_0 = summary.cell_solutions["0_0"]
+    assert sol_0_0.player_id == "00-0019596"
+    assert sol_0_0.full_name == "Tom Brady"
+    assert sol_0_0.pick_percentage == 70.0
+
+
+@pytest.mark.asyncio
+async def test_grid_summary_cold_start_fallback(test_db_session: AsyncSession, mock_redis: MockRedis):
+    """
+    Tests cold-start fallback: when N(c) = 0, returns most prominent historical player (HOF / games started) with pick_percentage: null.
+    """
+    puzzle_id = str(uuid.uuid4())
+    p_hof = Player(
+        player_id="00-0010344",
+        full_name="Brett Favre",
+        first_name="Brett",
+        last_name="Favre",
+        primary_position="QB",
+        rookie_year=1991,
+        draft_round=2,
+        is_active=False,
+    )
+    p_bench = Player(
+        player_id="p-bench-01",
+        full_name="Backup QB",
+        first_name="Backup",
+        last_name="QB",
+        primary_position="QB",
+        rookie_year=2020,
+        draft_round=7,
+        is_active=False,
+    )
+    f_gnb = Franchise(franchise_id="GNB", canonical_name="Green Bay Packers", established_year=1921)
+    stint_hof = PlayerTeamStint(player_id="00-0010344", franchise_id="GNB", season_year=1995, games_played=16, games_started=16)
+    stint_bench = PlayerTeamStint(player_id="p-bench-01", franchise_id="GNB", season_year=2020, games_played=2, games_started=0)
+
+    puzzle = DailyPuzzle(
+        puzzle_id=uuid.UUID(puzzle_id),
+        target_date=date(2026, 9, 13),
+        game_type="GRID",
+        puzzle_number=107,
+        puzzle_data={
+            "valid_solutions": {"0_1": ["p-bench-01", "00-0010344"]},
+            "cell_cardinalities": [[10]*3]*3,
+        },
+        solution_hash="hash_cold_1",
+    )
+    test_db_session.add_all([p_hof, p_bench, f_gnb, stint_hof, stint_bench, puzzle])
+    await test_db_session.commit()
+
+    # Call summary on cold start (0 submissions in Redis or DB)
+    summary = await GridValidationService.get_puzzle_summary(
+        session=test_db_session,
+        puzzle_id=puzzle_id,
+        redis_client=mock_redis,
+    )
+
+    sol_0_1 = summary.cell_solutions["0_1"]
+    # Favre is HOF and started 16 games vs backup who started 0
+    assert sol_0_1.full_name == "Brett Favre"
+    assert sol_0_1.pick_percentage is None
+
+
+@pytest.mark.asyncio
+async def test_fastapi_grid_summary_and_surrender_endpoints(test_db_session: AsyncSession, mock_redis: MockRedis):
+    """
+    Tests FastAPI endpoints:
+    - GET /api/v1/grid/puzzles/{puzzle_id}/summary
+    - POST /api/v1/grid/surrender-reveal
+    """
+    puzzle_id = str(uuid.uuid4())
+    player = Player(
+        player_id="00-0033873",
+        full_name="Patrick Mahomes",
+        first_name="Patrick",
+        last_name="Mahomes",
+        primary_position="QB",
+        rookie_year=2017,
+        draft_round=1,
+        is_active=True,
+    )
+    puzzle = DailyPuzzle(
+        puzzle_id=uuid.UUID(puzzle_id),
+        target_date=date(2026, 9, 14),
+        game_type="GRID",
+        puzzle_number=108,
+        puzzle_data={
+            "valid_solutions": {"0_0": ["00-0033873"]},
+            "cell_cardinalities": [[10]*3]*3,
+        },
+        solution_hash="hash_endpoints_1",
+    )
+    test_db_session.add_all([player, puzzle])
+    await test_db_session.commit()
+
+    # Populate Redis total and pick
+    await mock_redis.set(f"puzzle:{puzzle_id}:cell:0_0:total", "50")
+    await mock_redis.hincrby(f"puzzle:{puzzle_id}:cell:0_0:picks", "00-0033873", 45)
+
+    app.dependency_overrides[get_async_session] = lambda: test_db_session
+    app.dependency_overrides[get_redis] = lambda: mock_redis
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        # 1. GET /api/v1/grid/puzzles/{puzzle_id}/summary
+        res = await client.get(f"/api/v1/grid/puzzles/{puzzle_id}/summary")
+        assert res.status_code == 200
+        data = res.json()
+        assert data["puzzle_id"] == puzzle_id
+        assert "cell_solutions" in data
+        assert "0_0" in data["cell_solutions"]
+        assert data["cell_solutions"]["0_0"]["full_name"] == "Patrick Mahomes"
+        assert data["cell_solutions"]["0_0"]["pick_percentage"] == 90.0
+
+        # 2. POST /api/v1/grid/surrender-reveal
+        res_surrender = await client.post(
+            "/api/v1/grid/surrender-reveal",
+            json={"puzzle_id": puzzle_id},
+        )
+        assert res_surrender.status_code == 200
+        data_surrender = res_surrender.json()
+        assert data_surrender["puzzle_id"] == puzzle_id
+        assert data_surrender["cell_solutions"]["0_0"]["full_name"] == "Patrick Mahomes"
+
+        # 3. GET /api/v1/puzzles/grid/daily (Anti-Cheat check: no solutions in daily payload)
+        res_daily = await client.get("/api/v1/puzzles/grid/daily")
+        assert res_daily.status_code == 200
+        daily_data = res_daily.json()
+        assert "cell_solutions" not in daily_data["puzzle_data"]
+        assert "valid_solutions" not in daily_data["puzzle_data"]
+
+    app.dependency_overrides.clear()
+
 
 

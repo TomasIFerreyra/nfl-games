@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { CheckCircle2, Check } from "lucide-react";
+import { CheckCircle2, Check, XCircle } from "lucide-react";
 import { getPlayerHeadshotUrl } from "@/lib/playerHeadshots";
 
 export interface PlayerTileProps {
@@ -18,12 +18,16 @@ export interface PlayerTileProps {
   team?: string | null;
   /** Rarity percentage score for Grid mode (e.g. 14.5) */
   rarityScore?: number | null;
+  /** Pick percentage for missed/revealed cell (e.g. 68.4) */
+  pickPercentage?: number | null;
+  /** Missed/unrevealed end of game state */
+  isMissed?: boolean;
   /** Optional custom badge or subtext element */
   badge?: React.ReactNode;
   /** Optional secondary line of text */
   subtext?: string | null;
-  /** Visual variant: 'grid' for 3x3 solved cells, 'connections' for 4x4 selectable items, 'default' */
-  variant?: "grid" | "connections" | "default";
+  /** Visual variant: 'grid' for 3x3 solved cells, 'grid-missed' for end-of-game revealed answers, 'connections' for 4x4 selectable items, 'default' */
+  variant?: "grid" | "grid-missed" | "connections" | "default";
   /** Selection state for Connections board */
   isSelected?: boolean;
   /** Disabled interaction state */
@@ -43,6 +47,8 @@ export const PlayerTile: React.FC<PlayerTileProps> = ({
   position,
   team,
   rarityScore,
+  pickPercentage,
+  isMissed = false,
   badge,
   subtext,
   variant = "default",
@@ -64,10 +70,14 @@ export const PlayerTile: React.FC<PlayerTileProps> = ({
   const firstName = nameParts.length > 1 ? nameParts.slice(0, -1).join(" ") : "";
 
   // Base card variant styles
-  const isGrid = variant === "grid";
+  const isGridMissed = variant === "grid-missed" || (variant === "grid" && isMissed) || isMissed;
+  const isGrid = variant === "grid" && !isMissed;
   const isConnections = variant === "connections";
 
   const getContainerStyle = () => {
+    if (isGridMissed) {
+      return "bg-gradient-to-b from-rose-950/60 to-surface border-2 border-red-500/80 ring-1 ring-red-500/40 shadow-inner text-white";
+    }
     if (isGrid) {
       return "bg-gradient-to-b from-emerald-950/50 to-surface border-emerald-500/60 shadow-inner text-white";
     }
@@ -85,9 +95,8 @@ export const PlayerTile: React.FC<PlayerTileProps> = ({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={`group relative aspect-square w-full rounded-xl border p-0 select-none overflow-hidden text-center transition-all duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-nfl-blue ${getContainerStyle()} ${
-        disabled ? "cursor-default" : "cursor-pointer"
-      } ${className}`}
+      className={`group relative aspect-square w-full rounded-xl border p-0 select-none overflow-hidden text-center transition-all duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-nfl-blue ${getContainerStyle()} ${disabled ? "cursor-default" : "cursor-pointer"
+        } ${className}`}
       title={name}
     >
       {/* Subtle Stadium Radial Glow */}
@@ -100,11 +109,23 @@ export const PlayerTile: React.FC<PlayerTileProps> = ({
         </div>
       )}
 
-      {/* Grid Rarity Top-Right Pill Badge */}
+      {/* Grid Success Rarity Top-Right Pill Badge */}
       {isGrid && rarityScore !== null && rarityScore !== undefined && (
         <div className="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 z-20 flex items-center space-x-0.5 sm:space-x-1 rounded-full bg-emerald-900/80 border border-emerald-400/40 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold text-emerald-300 backdrop-blur-xs shadow-sm">
           <CheckCircle2 className="h-2 w-2 sm:h-2.5 sm:w-2.5 shrink-0 text-emerald-400" />
           <span>{rarityScore.toFixed(1)}%</span>
+        </div>
+      )}
+
+      {/* Grid Missed / Unrevealed Top Pick Pill Badge */}
+      {isGridMissed && (
+        <div className="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 z-20 flex items-center space-x-0.5 sm:space-x-1 rounded-full bg-rose-950/90 border border-rose-500/60 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold text-rose-300 backdrop-blur-xs shadow-sm">
+          <XCircle className="h-2 w-2 sm:h-2.5 sm:w-2.5 shrink-0 text-rose-400" />
+          <span>
+            {pickPercentage !== null && pickPercentage !== undefined
+              ? `${pickPercentage.toFixed(1)}%`
+              : "Top Pick"}
+          </span>
         </div>
       )}
 
@@ -121,7 +142,8 @@ export const PlayerTile: React.FC<PlayerTileProps> = ({
                 sizes="(max-width: 640px) 25vw, (max-width: 1024px) 20vw, 160px"
                 priority={priority}
                 onError={() => setImgError(true)}
-                className="object-contain object-bottom pointer-events-none transition-all duration-300"
+                className={`object-contain object-bottom pointer-events-none transition-all duration-300 ${isGridMissed ? "grayscale-[35%] opacity-85" : ""
+                  }`}
               />
             </div>
           </div>
