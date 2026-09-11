@@ -54,12 +54,14 @@ async def get_daily_puzzle(
     4. Sanitizes response so solution sets are strictly omitted from client payloads.
     """
     normalized_type = game_type.upper().replace("-", "_")
-    valid_types = {"GRID", "REVERSE_GRID", "CONNECTIONS", "TOP10"}
+    valid_types = {"GRID", "REVERSE_GRID", "CONNECTIONS", "TOP10", "WEDDLE", "GUESS_PLAYER"}
     if normalized_type not in valid_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid game type '{game_type}'. Must be one of: grid, reverse-grid, connections, top10.",
+            detail=f"Invalid game type '{game_type}'. Must be one of: grid, reverse-grid, connections, top10, weddle.",
         )
+    if normalized_type == "GUESS_PLAYER":
+        normalized_type = "WEDDLE"
 
     if target_date is not None:
         query_date = target_date
@@ -95,7 +97,7 @@ async def get_daily_puzzle(
                 puzzle = None  # Force JIT to regenerate
 
     # If puzzle is missing (or force_regenerate is requested), trigger JIT lazy generation
-    if (not puzzle or force_regenerate) and normalized_type in {"GRID", "CONNECTIONS", "TOP10"}:
+    if (not puzzle or force_regenerate) and normalized_type in {"GRID", "CONNECTIONS", "TOP10", "WEDDLE"}:
         if settings.AUTO_GENERATE_MISSING_PUZZLE or force_regenerate:
             lock_key = f"puzzle:lock:{normalized_type}:{query_date}"
             lock_token = None
@@ -131,6 +133,11 @@ async def get_daily_puzzle(
                         )
                     elif normalized_type == "TOP10":
                         puzzle = await PuzzlePipelineService.generate_daily_top10(
+                            session=session,
+                            target_date=query_date,
+                        )
+                    elif normalized_type == "WEDDLE":
+                        puzzle = await PuzzlePipelineService.generate_daily_weddle(
                             session=session,
                             target_date=query_date,
                         )
@@ -178,6 +185,13 @@ async def get_daily_puzzle(
             "metric_label": raw_data.get("metric_label"),
             "slots_count": 10,
         }
+    elif normalized_type == "WEDDLE":
+        sanitized_data = {
+            "mode": "weddle",
+            "max_attempts": 6,
+            "attributes_count": 8,
+        }
+
 
     return DailyPuzzleResponse(
         puzzle_id=puzzle.puzzle_id,

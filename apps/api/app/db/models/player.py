@@ -1,16 +1,22 @@
+from datetime import date
 import uuid
 from typing import TYPE_CHECKING, List, Optional
 from sqlalchemy import (
     BigInteger,
     Boolean,
     CheckConstraint,
+    Date,
     ForeignKey,
     Index,
+    Integer,
     SmallInteger,
     String,
     UniqueConstraint,
+    cast,
+    func,
     text,
 )
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -113,6 +119,52 @@ class Player(Base):
         String(255),
         nullable=True
     )
+    jersey_number: Mapped[Optional[int]] = mapped_column(
+        SmallInteger,
+        nullable=True,
+        comment="Active NFL jersey number"
+    )
+    birth_date: Mapped[Optional[date]] = mapped_column(
+        Date,
+        nullable=True,
+        index=True,
+        comment="Canonical date of birth"
+    )
+
+    @hybrid_property
+    def current_age(self) -> Optional[int]:
+        """
+        Calculates real-time current age dynamically based on birth_date and today's calendar date.
+        Accurately accounts for leap years and exact month/day boundaries.
+        """
+        if not self.birth_date:
+            return None
+        today = date.today()
+        return (
+            today.year
+            - self.birth_date.year
+            - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
+        )
+
+    @current_age.expression
+    def current_age(cls):
+        """
+        SQL-level expression for querying current_age via PostgreSQL AGE() and EXTRACT().
+        """
+        return cast(
+            func.extract("year", func.age(func.current_date(), cls.birth_date)),
+            Integer,
+        )
+
+    @hybrid_property
+    def age(self) -> Optional[int]:
+        """Alias for current_age property."""
+        return self.current_age
+
+    @age.expression
+    def age(cls):
+        """SQL-level expression alias for current_age."""
+        return cls.current_age
 
     # Relationships
     stints: Mapped[List["PlayerTeamStint"]] = relationship(

@@ -47,6 +47,30 @@
 - **Repeated Guess Invariant:** Submitting a player already guessed in the current session does not burn a strike (`is_repeated: true`, `strikes_added: 0`).
 - **Completion States:** Solved (all 10 slots revealed), Struck Out (3 strikes reached), or Surrendered/Resigned. Final score weighted by rank discovery and strike penalty.
 
+#### 1.1.5 Guess the Player (Weddle Mode)
+- **Objective:** Guess the mystery active NFL player chosen deterministically each calendar day.
+- **Guess Limit:** Hard ceiling of six (6) total guess attempts.
+- **Feedback Table Attributes:** Guessed player is evaluated against target player across 8 attributes:
+  0. Player Name & Headshot preview
+  1. Team (Current NFL Franchise)
+  2. Side of Ball (Offense vs. Defense)
+  3. Position (e.g., QB, WR, CB, DE)
+  4. Conference (AFC vs. NFC)
+  5. Division (East, North, South, West)
+  6. Age (in years)
+  7. Height (in inches, formatted as feet/inches: e.g., 6'2")
+  8. Jersey Number (e.g., #15)
+- **Color Grading & Directional Clues:**
+  - *Green (Exact Match):* Attribute exactly matches target player.
+  - *Yellow (Partial / Close Match):*
+    - Positional sub-groups: OL (`OT`, `OG`, `C`, `OL`), DB (`CB`, `S`, `FS`, `SS`, `DB`), DL/EDGE (`DE`, `DT`, `NT`, `DL`, `EDGE`), LB (`LB`, `ILB`, `OLB`, `MLB`), WR/TE (`WR`, `TE`), RB/FB (`RB`, `FB`).
+    - Age: Within $\pm 2$ years of target.
+    - Height: Within $\pm 2$ inches of target.
+    - Jersey Number: Within $\pm 2$ of target.
+  - *Gray (Incorrect):* Criteria not satisfied.
+  - *Directional Indicators:* For Age, Height, and Jersey Number, non-exact matches display `↑` if target is higher or `↓` if target is lower.
+- **Anti-Cheat Invariant:** Target player identity is omitted from client payloads until `is_game_over == true`.
+
 ---
 
 ### 1.2 Domain Rules, Edge Cases & Franchise Lineage Invariants
@@ -260,7 +284,7 @@
   - Incorrect (One Away): `{ is_match: false, group: null, is_one_away: true, matched_count: 3 }`
   - Incorrect (No One Away): `{ is_match: false, group: null, is_one_away: false, matched_count: max_matched_count }`
 
-#### 3.2.5 `POST /api/v1/top10/guess`
+##### 3.2.5 `POST /api/v1/top10/guess`
 - **Request Body:** `{ puzzle_id: UUID | string, player_id: string, previous_guesses?: string[] }`
 - **Validation Constraints:**
   - `puzzle_id` must reference an existing puzzle with `game_type = 'TOP10'` (`PUZZLE_NOT_FOUND`, 404).
@@ -269,6 +293,47 @@
   - **Hit:** `{ is_hit: true, entry: { rank, player_id, player_name, metric_value, formatted_value, headshot_url, active_years, primary_franchise, tied_player_ids }, strikes_added: 0 }`
   - **Miss / Strike:** `{ is_hit: false, entry: null, strikes_added: 1, reason: "Player is not in the Top 10 for this category." }`
   - **Repeated Guess:** `{ is_hit: false, entry: null, strikes_added: 0, is_repeated: true, reason: "Player has already been submitted in this session." }`
+
+#### 3.2.6 `POST /api/v1/weddle/guess`
+- **Request Body:** `{ puzzle_id: string, player_id: string, previous_guesses?: string[] }`
+- **Validation Constraints:**
+  - `puzzle_id` must reference a valid daily Weddle puzzle or daily date identifier (`PUZZLE_NOT_FOUND`, 404).
+  - `player_id` must reference an identifiable NFL player (`INVALID_PLAYER_ID`, 422).
+- **Success Response (200 OK):**
+  ```json
+  {
+    "is_correct": false,
+    "guesses_remaining": 5,
+    "is_game_over": false,
+    "comparison": {
+      "player": {
+        "player_id": "00-0033873",
+        "full_name": "Patrick Mahomes",
+        "headshot_url": "https://...",
+        "team": "KC",
+        "position": "QB",
+        "side_of_ball": "Offense",
+        "conference": "AFC",
+        "division": "West",
+        "age": 28,
+        "height_inches": 74,
+        "height_formatted": "6'2\"",
+        "jersey_number": 15
+      },
+      "attributes": {
+        "team": { "status": "gray", "direction": null },
+        "side_of_ball": { "status": "green", "direction": null },
+        "position": { "status": "green", "direction": null },
+        "conference": { "status": "green", "direction": null },
+        "division": { "status": "gray", "direction": null },
+        "age": { "status": "yellow", "direction": "higher" },
+        "height": { "status": "green", "direction": null },
+        "jersey_number": { "status": "yellow", "direction": "lower" }
+      }
+    },
+    "revealed_target": null
+  }
+  ```
 
 ---
 
@@ -343,6 +408,29 @@ Guarantees smooth convergence and eliminates cold-start anomalies for early-day 
 4. **Validation Performance Guarantee:**
    Evaluates player guesses in $O(1)$ against precomputed ranked slots with fuzzy normalization and duplicate guess deduplication.
 
+### 4.5 Guess the Player (Weddle) Deterministic Selection & Comparison Engine
+1. **Deterministic Seeding Formula:**
+   $$\text{seed} = \text{int}(\text{target\_date.strftime}("\%Y\%m\%d")) + 5503$$
+2. **Active Player Pool Eligibility Invariants:**
+   - Must be an active NFL player (`is_active == true`).
+   - Must have complete metadata: non-null team, jersey number, height in inches, age, and position code.
+   - Practice-squad-only or incomplete records are excluded from the target selection pool.
+3. **Attribute Comparison Engine Rules:**
+   - `team`: `green` if exact franchise match, else `gray`.
+   - `side_of_ball`: `green` if both are Offense or both Defense, else `gray`.
+   - `position`: `green` if exact match. `yellow` if in same positional subgroup:
+     - OL: `OT`, `T`, `OG`, `G`, `C`, `OL`, `LT`, `RT`, `LG`, `RG`
+     - DB: `CB`, `S`, `FS`, `SS`, `DB`
+     - DL / Edge: `DE`, `DT`, `NT`, `DL`, `EDGE`
+     - LB: `LB`, `ILB`, `OLB`, `MLB`
+     - Receivers: `WR`, `TE`
+     - Backfield: `RB`, `FB`
+     - Otherwise `gray`.
+   - `conference`: `green` if both AFC or both NFC, else `gray`.
+   - `division`: `green` if both East, both North, both South, or both West, else `gray`.
+   - `age`: `green` (direction: `null`) if equal. If $|age_{\text{guess}} - age_{\text{target}}| \le 2$: `yellow`. Else `gray`. Direction is `higher` if $age_{\text{target}} > age_{\text{guess}}$, `lower` if $age_{\text{target}} < age_{\text{guess}}$.
+   - `height`: `green` (direction: `null`) if equal. If $|height_{\text{guess}} - height_{\text{target}}| \le 2$: `yellow`. Else `gray`. Direction is `higher` if $height_{\text{target}} > height_{\text{guess}}$, `lower` if $height_{\text{target}} < height_{\text{guess}}$.
+   - `jersey_number`: `green` (direction: `null`) if equal. If $|jersey_{\text{guess}} - jersey_{\text{target}}| \le 2$: `yellow`. Else `gray`. Direction is `higher` if $jersey_{\text{target}} > jersey_{\text{guess}}$, `lower` if $jersey_{\text{target}} < jersey_{\text{guess}}$.
 
 ---
 

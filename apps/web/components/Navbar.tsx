@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Flame, Grid3X3, Layers, Trophy, RotateCcw } from "lucide-react";
+import { Flame, Grid3X3, Layers, Trophy, RotateCcw, UserSearch } from "lucide-react";
 
 interface NavbarProps {
   onOpenStreaks?: () => void;
@@ -13,11 +13,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenStreaks }) => {
   const pathname = usePathname();
 
   const navItems = [
-    { label: "3x3 Grid", href: "/grid", icon: Grid3X3 },
-    { label: "Connections", href: "/connections", icon: Layers },
-    { label: "Top 10", href: "/top10", icon: Trophy },
-    { label: "Reverse Grid", href: "/reverse-grid", icon: RotateCcw },
+    { label: "3x3 Grid", href: "/grid", icon: Grid3X3, comingSoon: false },
+    { label: "Connections", href: "/connections", icon: Layers, comingSoon: false },
+    { label: "Top 10", href: "/top10", icon: Trophy, comingSoon: false },
+    { label: "Guess Player", href: "/weddle", icon: UserSearch, comingSoon: false },
+    { label: "Reverse Grid", href: "/reverse-grid", icon: RotateCcw, comingSoon: true },
   ];
+
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-surface/90 backdrop-blur-md">
@@ -40,6 +42,23 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenStreaks }) => {
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
+
+            if (item.comingSoon) {
+              return (
+                <div
+                  key={item.label}
+                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-gray-500 cursor-not-allowed opacity-60 select-none"
+                  title="Coming Soon"
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                  <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-surface-raised border border-border text-gray-400 font-semibold">
+                    Soon
+                  </span>
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.href}

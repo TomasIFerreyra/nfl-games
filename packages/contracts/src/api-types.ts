@@ -164,9 +164,70 @@ export interface DailyPuzzleResponse {
   puzzle_id: string;
   puzzle_number: number;
   target_date: string;
-  game_type: "grid" | "reverse_grid" | "connections" | "top10";
+  game_type: "grid" | "reverse_grid" | "connections" | "top10" | "weddle";
   puzzle_data: Record<string, unknown>;
   created_at: string;
+}
+
+// Weddle / Guess the Player Schema
+export interface WeddlePlayer {
+  player_id: string;
+  full_name: string;
+  headshot_url?: string | null;
+  team: string;
+  side_of_ball: "Offense" | "Defense";
+  position: string;
+  conference: "AFC" | "NFC";
+  division: "East" | "North" | "South" | "West";
+  age: number;
+  height_inches: number;
+  height_formatted: string;
+  jersey_number: number;
+}
+
+export interface AttributeComparison {
+  status: "green" | "yellow" | "gray";
+  direction?: "higher" | "lower" | null;
+}
+
+export interface WeddleComparisonAttributes {
+  team: AttributeComparison;
+  side_of_ball: AttributeComparison;
+  position: AttributeComparison;
+  conference: AttributeComparison;
+  division: AttributeComparison;
+  age: AttributeComparison;
+  height: AttributeComparison;
+  jersey_number: AttributeComparison;
+}
+
+export interface WeddleGuessComparison {
+  player: WeddlePlayer;
+  attributes: WeddleComparisonAttributes;
+}
+
+export interface WeddleGuessRequest {
+  puzzle_id: string;
+  player_id: string;
+  previous_guesses?: string[];
+}
+
+export interface WeddleGuessResponse {
+  is_correct: boolean;
+  guesses_remaining: number;
+  is_game_over: boolean;
+  comparison: WeddleGuessComparison;
+  revealed_target?: WeddlePlayer | null;
+}
+
+export interface WeddleUserState {
+  puzzle_id: string;
+  attempts: WeddleGuessComparison[];
+  is_completed: boolean;
+  is_won: boolean;
+  is_resigned?: boolean;
+  revealed_target?: WeddlePlayer | null;
+  guesses_remaining: number;
 }
 
 // Top 10 Isolated User Progression Schema
@@ -233,3 +294,4 @@ export interface ClientLocalStorageState {
     top10: { current: number; max: number; last_played: string };
   };
 }
+

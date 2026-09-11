@@ -416,29 +416,16 @@ export const Top10Board: React.FC<Top10BoardProps> = ({
                 )}
               </div>
 
-              {/* Metric Value & Status Indicator */}
-              <div className="flex items-center space-x-2 shrink-0 ml-2">
+              {/* Metric Value */}
+              <div className="flex items-center shrink-0 ml-2">
                 {isRevealed ? (
-                  <>
-                    <span
-                      className={`text-sm font-black ${
-                        isAutoRevealed ? "text-rose-400" : "text-amber-400"
-                      }`}
-                    >
-                      {entry.formatted_value}
-                    </span>
-                    {wasGuessed ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300">
-                        <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-                        <span className="hidden sm:inline">Found</span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/50 text-rose-300">
-                        <XCircle className="h-3 w-3 text-rose-400" />
-                        <span className="hidden sm:inline">Missed</span>
-                      </span>
-                    )}
-                  </>
+                  <span
+                    className={`text-sm font-black ${
+                      isAutoRevealed ? "text-rose-400" : "text-amber-400"
+                    }`}
+                  >
+                    {entry.formatted_value}
+                  </span>
                 ) : (
                   <span className="text-xs text-gray-600 font-mono">Hidden</span>
                 )}

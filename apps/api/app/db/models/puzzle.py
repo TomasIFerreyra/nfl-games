@@ -34,9 +34,10 @@ class DailyPuzzle(Base):
     __table_args__ = (
         UniqueConstraint("target_date", "game_type", name="uq_daily_puzzles_date_type"),
         CheckConstraint(
-            "game_type IN ('GRID', 'REVERSE_GRID', 'CONNECTIONS', 'TOP10')",
+            "game_type IN ('GRID', 'REVERSE_GRID', 'CONNECTIONS', 'TOP10', 'WEDDLE')",
             name="chk_puzzle_game_type",
         ),
+
         Index("idx_daily_puzzles_jsonb", "puzzle_data", postgresql_using="gin"),
     )
 

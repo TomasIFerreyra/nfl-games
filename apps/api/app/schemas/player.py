@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Any, List, Optional, Union
 from pydantic import BaseModel, Field
 
@@ -7,6 +8,25 @@ class PlayerSummary(BaseModel):
     full_name: str
     position: str
     headshot_url: Optional[str] = None
+    birth_date: Optional[date] = None
+    age: Optional[int] = None
+
+
+class PlayerDetail(BaseModel):
+    player_id: str
+    gsis_id: Optional[str] = None
+    pfr_id: Optional[str] = None
+    full_name: str
+    first_name: str
+    last_name: str
+    primary_position: str
+    birth_date: Optional[date] = None
+    age: Optional[int] = Field(None, description="Dynamically computed current age")
+    rookie_year: int
+    final_year: Optional[int] = None
+    is_active: bool
+    headshot_url: Optional[str] = None
+    jersey_number: Optional[int] = None
 
 
 class SearchIndexResponse(BaseModel):

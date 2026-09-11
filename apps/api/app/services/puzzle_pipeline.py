@@ -307,6 +307,62 @@ class PuzzlePipelineService:
         return puzzle
 
     @classmethod
+    async def generate_daily_weddle(
+        cls,
+        session: AsyncSession,
+        target_date: date,
+    ) -> DailyPuzzle:
+        """
+        Generates and persists the daily 'Guess the Player' (Weddle) mystery puzzle record.
+        Deterministic seed: seed = YYYYMMDD + 5503.
+        """
+        from app.services.weddle_service import WeddleService
+
+        start_time = time.perf_counter()
+        puzzle_number = cls.calculate_puzzle_number(target_date)
+
+        target_player = WeddleService.select_daily_target(target_date)
+        puzzle_data = {
+            "mode": "weddle",
+            "target_player_id": target_player.player_id,
+            "target_player_name": target_player.full_name,
+            "max_attempts": 6,
+            "attributes_count": 8,
+        }
+
+        sol_hash = cls.compute_solution_hash(puzzle_data)
+
+        stmt = select(DailyPuzzle).where(
+            DailyPuzzle.target_date == target_date,
+            DailyPuzzle.game_type == "WEDDLE",
+        )
+        existing = (await session.execute(stmt)).scalar_one_or_none()
+
+        if existing:
+            existing.puzzle_data = puzzle_data
+            existing.solution_hash = sol_hash
+            existing.puzzle_number = puzzle_number
+            puzzle = existing
+        else:
+            puzzle = DailyPuzzle(
+                target_date=target_date,
+                game_type="WEDDLE",
+                puzzle_number=puzzle_number,
+                puzzle_data=puzzle_data,
+                solution_hash=sol_hash,
+            )
+            session.add(puzzle)
+
+        await session.commit()
+        await session.refresh(puzzle)
+
+        duration_ms = (time.perf_counter() - start_time) * 1000
+        logger.info(
+            f"Pipeline generated Weddle Puzzle #{puzzle_number} for {target_date} in {duration_ms:.2f}ms."
+        )
+        return puzzle
+
+    @classmethod
     async def ensure_daily_puzzles(
         cls,
         session: AsyncSession,
@@ -377,7 +433,26 @@ class PuzzlePipelineService:
         if top10_res:
             puzzles_map["TOP10"] = top10_res
 
+        # 4. Ensure WEDDLE puzzle
+        stmt_weddle = select(DailyPuzzle).where(
+            DailyPuzzle.target_date == target_date,
+            DailyPuzzle.game_type == "WEDDLE",
+        )
+        weddle_res = (await session.execute(stmt_weddle)).scalar_one_or_none()
+        if not weddle_res:
+            try:
+                weddle_res = await cls.generate_daily_weddle(
+                    session=session,
+                    target_date=target_date,
+                )
+                logger.info(f"Startup check: Generated missing WEDDLE puzzle for {target_date}.")
+            except Exception as exc:
+                logger.error(f"Failed to auto-generate WEDDLE puzzle on startup: {exc}", exc_info=True)
+        if weddle_res:
+            puzzles_map["WEDDLE"] = weddle_res
+
         return puzzles_map
+
 
     @classmethod
     async def acquire_distributed_lock(

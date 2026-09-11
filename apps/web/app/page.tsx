@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Grid3X3, Layers, Trophy, RotateCcw, ArrowRight, Flame, Sparkles } from "lucide-react";
+import { Grid3X3, Layers, Trophy, RotateCcw, ArrowRight, Flame, Sparkles, UserSearch } from "lucide-react";
 import { GameStateManager } from "@/lib/storage/gameState";
 import { ClientLocalStorageState } from "@nfl-games/contracts";
 
@@ -25,11 +25,21 @@ export default function HomePage() {
       isDone: state?.games.grid.is_completed,
     },
     {
+      title: "Guess the Player",
+      description: "Weddle-style mystery: 6 attempts to deduce the active NFL player by attributes.",
+      href: "/weddle",
+      icon: UserSearch,
+      color: "from-emerald-600 to-teal-800",
+      streakKey: null,
+      status: "Play Today's Mystery",
+      isDone: false,
+    },
+    {
       title: "Connections 4x4",
       description: "Find four groups of four NFL players or milestones that share a secret link.",
       href: "/connections",
       icon: Layers,
-      color: "from-emerald-600 to-teal-800",
+      color: "from-violet-600 to-purple-800",
       streakKey: "connections" as const,
       status: state?.games.connections.is_completed ? "Completed Today" : "Play Today's Puzzle",
       isDone: state?.games.connections.is_completed,
@@ -49,12 +59,14 @@ export default function HomePage() {
       description: "Players are revealed. Can you deduce the mystery criteria that unite them?",
       href: "/reverse-grid",
       icon: RotateCcw,
-      color: "from-purple-600 to-violet-800",
+      color: "from-purple-900/40 to-violet-950/40",
       streakKey: null,
-      status: "Play Reverse Mode",
+      status: "Mode in Development",
       isDone: false,
+      comingSoon: true,
     },
   ];
+
 
   return (
     <div className="flex flex-col items-center justify-center space-y-10">
@@ -77,6 +89,52 @@ export default function HomePage() {
         {games.map((game) => {
           const Icon = game.icon;
           const streak = game.streakKey ? state?.streaks[game.streakKey] : null;
+
+          if (game.comingSoon) {
+            return (
+              <div
+                key={game.title}
+                className="relative overflow-hidden rounded-2xl border border-border/60 bg-surface/30 p-6 select-none cursor-not-allowed opacity-60"
+              >
+                {/* Greyish layer overlay */}
+                <div className="absolute inset-0 bg-neutral-950/50 backdrop-grayscale pointer-events-none z-10" />
+
+                <div className="relative z-20">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-raised border border-border text-gray-500 shadow-inner">
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-lg font-bold text-gray-300">
+                            {game.title}
+                          </h2>
+                        </div>
+                      </div>
+                    </div>
+
+                    <span className="text-[11px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md bg-surface-raised/80 border border-border text-gray-400">
+                      Coming Soon
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-gray-400 mt-4 leading-relaxed">
+                    {game.description}
+                  </p>
+
+                  <div className="mt-5 flex items-center justify-between pt-3 border-t border-border/40 text-xs">
+                    <span className="text-gray-400 font-medium">
+                      {game.status}
+                    </span>
+                    <span className="inline-flex items-center px-3 py-1 rounded-lg bg-surface-raised border border-border text-gray-400 font-bold text-xs">
+                      Coming Soon
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          }
 
           return (
             <Link

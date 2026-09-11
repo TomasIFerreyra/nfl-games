@@ -20,6 +20,14 @@ from app.schemas.top10 import (
     Top10GuessResponse,
     Top10PuzzleData,
 )
+from app.schemas.weddle import (
+    AttributeComparison,
+    WeddleComparisonAttributes,
+    WeddleGuessComparison,
+    WeddleGuessRequest,
+    WeddleGuessResponse,
+    WeddlePlayer,
+)
 
 __all__ = [
     "ProblemDetail",
@@ -40,4 +48,11 @@ __all__ = [
     "Top10GuessRequest",
     "Top10GuessResponse",
     "DailyPuzzleResponse",
+    "WeddlePlayer",
+    "AttributeComparison",
+    "WeddleComparisonAttributes",
+    "WeddleGuessComparison",
+    "WeddleGuessRequest",
+    "WeddleGuessResponse",
 ]
+
