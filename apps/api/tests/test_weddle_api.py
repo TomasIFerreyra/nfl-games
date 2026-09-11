@@ -31,7 +31,7 @@ async def test_weddle_daily_generation_and_api():
 
         puzzle_id = data["puzzle_id"]
 
-        # 2. Test POST /api/v1/weddle/guess
+        # 2. Test POST /api/v1/weddle/guess with Josh Allen
         guess_res = await ac.post(
             "/api/v1/weddle/guess",
             json={
@@ -47,3 +47,48 @@ async def test_weddle_daily_generation_and_api():
         assert guess_data["guesses_remaining"] == 5
         assert guess_data["is_game_over"] is False
         assert guess_data["revealed_target"] is None  # Anti-cheat check
+
+        # 3. Collision Prevention: Guess Milton Williams by name and verify no Creed Humphrey collision
+        res_mw_name = await ac.post(
+            "/api/v1/weddle/guess",
+            json={
+                "puzzle_id": puzzle_id,
+                "player_id": "Milton Williams",
+                "previous_guesses": ["00-0034857"],
+            },
+        )
+        assert res_mw_name.status_code == 200
+        data_mw_name = res_mw_name.json()
+        guessed_player_mw = data_mw_name["comparison"]["player"]
+        assert guessed_player_mw["full_name"] == "Milton Williams"
+        assert guessed_player_mw["full_name"] != "Creed Humphrey"
+
+        # 4. Guess Creed Humphrey by name
+        res_ch = await ac.post(
+            "/api/v1/weddle/guess",
+            json={
+                "puzzle_id": puzzle_id,
+                "player_id": "Creed Humphrey",
+                "previous_guesses": ["00-0034857", "f1c9af6b-6329-4132-8a0d-b08d84a58a93"],
+            },
+        )
+        assert res_ch.status_code == 200
+        data_ch = res_ch.json()
+        guessed_player_ch = data_ch["comparison"]["player"]
+        assert guessed_player_ch["full_name"] == "Creed Humphrey"
+        assert guessed_player_ch["position"] == "C"
+
+        # 5. Guess Creed Humphrey by canonical GSIS ID 00-0036623
+        res_ch_id = await ac.post(
+            "/api/v1/weddle/guess",
+            json={
+                "puzzle_id": puzzle_id,
+                "player_id": "00-0036623",
+                "previous_guesses": ["00-0034857"],
+            },
+        )
+        assert res_ch_id.status_code == 200
+        data_ch_id = res_ch_id.json()
+        assert data_ch_id["comparison"]["player"]["full_name"] == "Creed Humphrey"
+
+
