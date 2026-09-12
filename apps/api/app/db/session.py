@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import (
 from app.core.config import settings
 
 # Configure SQLAlchemy 2.0 Async Engine with asyncpg driver
+# statement_cache_size=0 is critical for PgBouncer / Supavisor transaction-mode pooling (Neon/Supabase)
 engine: AsyncEngine = create_async_engine(
     settings.async_database_url,
     echo=settings.DEBUG,
@@ -20,6 +21,11 @@ engine: AsyncEngine = create_async_engine(
     pool_timeout=settings.DB_POOL_TIMEOUT,
     pool_recycle=settings.DB_POOL_RECYCLE,
     pool_pre_ping=True,
+    connect_args={
+        "statement_cache_size": 0,
+        "prepared_statement_cache_size": 0,
+        "command_timeout": 30,
+    },
 )
 
 # Async session factory

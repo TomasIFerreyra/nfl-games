@@ -25,11 +25,12 @@ async def init_redis_pool() -> Optional[Redis]:
         redis_url = settings.redis_connection_url
         _redis_pool = ConnectionPool.from_url(
             redis_url,
-            max_connections=50,
+            max_connections=settings.REDIS_MAX_CONNECTIONS,
             decode_responses=True,
-            socket_timeout=2.0,
-            socket_connect_timeout=2.0,
+            socket_timeout=3.0,
+            socket_connect_timeout=3.0,
             retry_on_timeout=True,
+            health_check_interval=30,
         )
         _redis_client = Redis(connection_pool=_redis_pool)
         # Test ping to verify connectivity

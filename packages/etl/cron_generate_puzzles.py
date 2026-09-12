@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
 Scheduled Batch Puzzle Generation Pipeline (Cron / Worker).
-Generates, validates, solves, and hydrates daily puzzles ahead of time (e.g., D+7 at 00:00:00 UTC).
-Ensures SLA <= 120s and guarantees mathematical solvability & density invariants.
+Generates, validates, solves, and hydrates daily puzzles ahead of time for all game modes:
+GRID, CONNECTIONS, TOP10, and WEDDLE.
+Strictly idempotent: preserves existing active games unless explicitly run with --force.
 """
 
 import asyncio
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 import logging
 import os
 import sys
@@ -23,10 +24,12 @@ if CURRENT_DIR not in sys.path:
     sys.path.insert(0, CURRENT_DIR)
 
 import click
-from redis.asyncio import Redis, ConnectionPool
+from redis.asyncio import ConnectionPool, Redis
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.core.config import settings
+from app.db.models.puzzle import DailyPuzzle
 from app.services.puzzle_pipeline import PuzzlePipelineService
 
 logging.basicConfig(
@@ -39,18 +42,19 @@ logger = logging.getLogger("cron_generate_puzzles")
 
 async def run_batch_generation(days_ahead: int = 7, force: bool = False) -> None:
     """
-    Executes the batch generation pipeline for days [D, D+days_ahead].
+    Executes the batch generation pipeline for days [D, D+days_ahead] across all game modes.
     """
     pipeline_start = time.perf_counter()
-    today = datetime.now().date()
-    logger.info(f"Starting batch puzzle generation pipeline for {days_ahead} days ahead (Base: {today})...")
+    today = datetime.now(timezone.utc).date()
+    logger.info(f"Starting batch puzzle generation for {days_ahead} days ahead (Base UTC: {today})...")
 
     # 1. Initialize DB and Redis connections
     engine = create_async_engine(
         settings.async_database_url,
         echo=False,
-        pool_size=10,
-        max_overflow=5,
+        pool_size=5,
+        max_overflow=2,
+        connect_args={"statement_cache_size": 0},
     )
     session_factory = async_sessionmaker(bind=engine, expire_on_commit=False)
 
@@ -59,44 +63,72 @@ async def run_batch_generation(days_ahead: int = 7, force: bool = False) -> None
     try:
         redis_pool = ConnectionPool.from_url(
             settings.redis_connection_url,
-            max_connections=20,
+            max_connections=10,
             decode_responses=True,
             socket_timeout=3.0,
         )
         redis_client = Redis(connection_pool=redis_pool)
         await redis_client.ping()
-        logger.info(f"Redis connected at {settings.REDIS_HOST}:{settings.REDIS_PORT}")
+        logger.info("Redis connected successfully for batch precomputation.")
     except Exception as exc:
         logger.warning(f"Redis not available for batch precomputation: {exc}. Proceeding with DB-only storage.")
         redis_client = None
 
-    generated_count = 0
-    skipped_count = 0
+    stats = {"generated": 0, "skipped": 0, "failed": 0}
+    game_modes = ["GRID", "CONNECTIONS", "TOP10", "WEDDLE"]
     total_days = days_ahead + 1
 
     try:
         for offset in range(total_days):
             target_date = today + timedelta(days=offset)
-            logger.info(f"--- Processing Day +{offset}: {target_date} ---")
+            logger.info(f"=== Processing Date: {target_date} (+{offset}d) ===")
 
             async with session_factory() as session:
-                day_start = time.perf_counter()
-                puzzle = await PuzzlePipelineService.generate_daily_grid(
-                    session=session,
-                    target_date=target_date,
-                    redis_client=redis_client,
-                )
-                day_duration = (time.perf_counter() - day_start) * 1000
+                for mode in game_modes:
+                    # 1. Idempotency Check: Verify if puzzle already exists
+                    stmt = select(DailyPuzzle).where(
+                        DailyPuzzle.target_date == target_date,
+                        DailyPuzzle.game_type == mode,
+                    )
+                    existing = (await session.execute(stmt)).scalar_one_or_none()
 
-                raw_data = puzzle.puzzle_data
-                cardinalities = raw_data.get("cell_cardinalities", [])
-                log_density = raw_data.get("log_density", 0.0)
+                    if existing and not force:
+                        logger.info(f"  [{mode}] Puzzle already exists (ID: {existing.puzzle_id}). Skipping.")
+                        stats["skipped"] += 1
+                        continue
 
-                logger.info(
-                    f"Generated Grid #{puzzle.puzzle_number} for {target_date} in {day_duration:.2f}ms. "
-                    f"UUID: {puzzle.puzzle_id}, Log-Density: {log_density}"
-                )
-                generated_count += 1
+                    # 2. Generate and persist puzzle
+                    try:
+                        t0 = time.perf_counter()
+                        if mode == "GRID":
+                            puzzle = await PuzzlePipelineService.generate_daily_grid(
+                                session=session,
+                                target_date=target_date,
+                                redis_client=redis_client,
+                            )
+                        elif mode == "CONNECTIONS":
+                            puzzle = await PuzzlePipelineService.generate_daily_connections(
+                                session=session,
+                                target_date=target_date,
+                            )
+                        elif mode == "TOP10":
+                            puzzle = await PuzzlePipelineService.generate_daily_top10(
+                                session=session,
+                                target_date=target_date,
+                            )
+                        elif mode == "WEDDLE":
+                            puzzle = await PuzzlePipelineService.generate_daily_weddle(
+                                session=session,
+                                target_date=target_date,
+                            )
+                        elapsed_ms = (time.perf_counter() - t0) * 1000
+                        logger.info(
+                            f"  [{mode}] Generated successfully in {elapsed_ms:.2f}ms (UUID: {puzzle.puzzle_id})."
+                        )
+                        stats["generated"] += 1
+                    except Exception as exc:
+                        logger.error(f"  [{mode}] Generation failed for {target_date}: {exc}", exc_info=True)
+                        stats["failed"] += 1
 
     finally:
         if redis_client:
@@ -107,11 +139,10 @@ async def run_batch_generation(days_ahead: int = 7, force: bool = False) -> None
 
     total_duration = time.perf_counter() - pipeline_start
     logger.info("=" * 60)
+    logger.info(f"Batch Generation Pipeline Complete in {total_duration:.2f}s")
     logger.info(
-        f"Batch Generation Pipeline Complete in {total_duration:.2f}s "
-        f"(SLA Budget: 120s, Status: {'SUCCESS [WITHIN SLA]' if total_duration <= 120 else 'OVER BUDGET'})."
+        f"Summary: Generated={stats['generated']}, Skipped={stats['skipped']}, Failed={stats['failed']}"
     )
-    logger.info(f"Summary: Generated={generated_count}, Skipped={skipped_count}, Total={total_days}")
     logger.info("=" * 60)
 
 
@@ -138,3 +169,4 @@ def main(days_ahead: int, force: bool) -> None:
 
 if __name__ == "__main__":
     main()
+

@@ -1,5 +1,5 @@
-from typing import List, Union
-from pydantic import AnyHttpUrl, field_validator
+from typing import List, Optional, Union
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -23,15 +23,22 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: Union[List[str], str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://nflminigames.com",
+        "https://www.nflminigames.com",
     ]
+    ALLOW_ORIGIN_REGEX: Optional[str] = r"^https:\/\/.*\.vercel\.app$"
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
         if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",") if i.strip()]
+            origins = [i.strip() for i in v.split(",") if i.strip()]
+            if "*" in origins:
+                # Disallow wildcard origin in CORS when credentials are used
+                return ["http://localhost:3000", "https://nflminigames.com"]
+            return origins
         elif isinstance(v, list):
-            return v
+            return [o for o in v if o != "*"]
         return ["http://localhost:3000"]
 
     # Database Credentials
@@ -71,8 +78,8 @@ class Settings(BaseSettings):
         )
 
     # Database Connection Pool Tuning
-    DB_POOL_SIZE: int = 20
-    DB_MAX_OVERFLOW: int = 10
+    DB_POOL_SIZE: int = 10
+    DB_MAX_OVERFLOW: int = 5
     DB_POOL_TIMEOUT: int = 30
     DB_POOL_RECYCLE: int = 1800
 
@@ -82,6 +89,7 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: str = ""
     REDIS_DB: int = 0
     REDIS_URL: str = ""
+    REDIS_MAX_CONNECTIONS: int = 30
 
     @property
     def redis_connection_url(self) -> str:
@@ -89,6 +97,9 @@ class Settings(BaseSettings):
             return self.REDIS_URL
         auth_part = f":{self.REDIS_PASSWORD}@" if self.REDIS_PASSWORD else ""
         return f"redis://{auth_part}{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+
+    # Observability
+    SENTRY_DSN: str = ""
 
     # CDN & Catalog Settings
     CDN_BASE_URL: str = "https://cdn.nflminigames.com"
@@ -100,4 +111,5 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
 
