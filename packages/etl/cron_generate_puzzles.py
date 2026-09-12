@@ -54,7 +54,10 @@ async def run_batch_generation(days_ahead: int = 7, force: bool = False) -> None
         echo=False,
         pool_size=5,
         max_overflow=2,
-        connect_args={"statement_cache_size": 0},
+        connect_args={
+            "statement_cache_size": 0,
+            "prepared_statement_cache_size": 0,
+        },
     )
     session_factory = async_sessionmaker(bind=engine, expire_on_commit=False)
 
@@ -83,8 +86,8 @@ async def run_batch_generation(days_ahead: int = 7, force: bool = False) -> None
             target_date = today + timedelta(days=offset)
             logger.info(f"=== Processing Date: {target_date} (+{offset}d) ===")
 
-            async with session_factory() as session:
-                for mode in game_modes:
+            for mode in game_modes:
+                async with session_factory() as session:
                     # 1. Idempotency Check: Verify if puzzle already exists
                     stmt = select(DailyPuzzle).where(
                         DailyPuzzle.target_date == target_date,
@@ -127,6 +130,7 @@ async def run_batch_generation(days_ahead: int = 7, force: bool = False) -> None
                         )
                         stats["generated"] += 1
                     except Exception as exc:
+                        await session.rollback()
                         logger.error(f"  [{mode}] Generation failed for {target_date}: {exc}", exc_info=True)
                         stats["failed"] += 1
 

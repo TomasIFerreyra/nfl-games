@@ -492,13 +492,242 @@ HISTORICAL_AWARDS: List[Tuple[str, str, int, Optional[str], Optional[str]]] = [
     ("Minkah Fitzpatrick", "PRO_BOWL", 2024, "DEFENSE", "PIT"),
     ("Kyle Hamilton", "PRO_BOWL", 2023, "DEFENSE", "BAL"),
     ("Kyle Hamilton", "PRO_BOWL", 2024, "DEFENSE", "BAL"),
+    ("Kyle Hamilton", "PRO_BOWL", 2025, "DEFENSE", "BAL"),
+    ("Xavier McKinney", "PRO_BOWL", 2024, "DEFENSE", "GNB"),
+    ("Xavier McKinney", "PRO_BOWL", 2025, "DEFENSE", "GNB"),
+    ("Brian Branch", "PRO_BOWL", 2024, "DEFENSE", "DET"),
+    ("Brian Branch", "PRO_BOWL", 2025, "DEFENSE", "DET"),
+    ("Kerby Joseph", "PRO_BOWL", 2024, "DEFENSE", "DET"),
+    ("Kerby Joseph", "PRO_BOWL", 2025, "DEFENSE", "DET"),
+    ("Jessie Bates III", "PRO_BOWL", 2023, "DEFENSE", "ATL"),
+    ("Jessie Bates III", "PRO_BOWL", 2024, "DEFENSE", "ATL"),
+    ("Antoine Winfield Jr.", "PRO_BOWL", 2021, "DEFENSE", "TAM"),
+    ("Antoine Winfield Jr.", "PRO_BOWL", 2023, "DEFENSE", "TAM"),
+    ("Antoine Winfield Jr.", "PRO_BOWL", 2024, "DEFENSE", "TAM"),
+    ("Derwin James", "PRO_BOWL", 2018, "DEFENSE", "LAC"),
+    ("Derwin James", "PRO_BOWL", 2021, "DEFENSE", "LAC"),
+    ("Derwin James", "PRO_BOWL", 2022, "DEFENSE", "LAC"),
+    ("Derwin James", "PRO_BOWL", 2024, "DEFENSE", "LAC"),
+    ("Budda Baker", "PRO_BOWL", 2017, "DEFENSE", "ARI"),
+    ("Budda Baker", "PRO_BOWL", 2019, "DEFENSE", "ARI"),
+    ("Budda Baker", "PRO_BOWL", 2020, "DEFENSE", "ARI"),
+    ("Budda Baker", "PRO_BOWL", 2021, "DEFENSE", "ARI"),
+    ("Budda Baker", "PRO_BOWL", 2022, "DEFENSE", "ARI"),
+    ("Budda Baker", "PRO_BOWL", 2023, "DEFENSE", "ARI"),
+    ("Budda Baker", "PRO_BOWL", 2024, "DEFENSE", "ARI"),
+    ("Jayden Daniels", "PRO_BOWL", 2024, "OFFENSE", "WAS"),
+    ("Jayden Daniels", "PRO_BOWL", 2025, "OFFENSE", "WAS"),
+    ("Brock Bowers", "PRO_BOWL", 2024, "OFFENSE", "LVR"),
+    ("Brock Bowers", "PRO_BOWL", 2025, "OFFENSE", "LVR"),
+    ("Brian Thomas Jr.", "PRO_BOWL", 2024, "OFFENSE", "JAX"),
+    ("Brian Thomas Jr.", "PRO_BOWL", 2025, "OFFENSE", "JAX"),
+    ("Jared Verse", "PRO_BOWL", 2024, "DEFENSE", "LAR"),
+    ("Jared Verse", "PRO_BOWL", 2025, "DEFENSE", "LAR"),
+    ("Quinyon Mitchell", "PRO_BOWL", 2024, "DEFENSE", "PHI"),
+    ("Quinyon Mitchell", "PRO_BOWL", 2025, "DEFENSE", "PHI"),
+    ("Zack Baun", "PRO_BOWL", 2024, "DEFENSE", "PHI"),
+    ("Zack Baun", "PRO_BOWL", 2025, "DEFENSE", "PHI"),
+    ("Jalen Hurts", "PRO_BOWL", 2022, "OFFENSE", "PHI"),
+    ("Jalen Hurts", "PRO_BOWL", 2023, "OFFENSE", "PHI"),
+    ("Jalen Hurts", "PRO_BOWL", 2024, "OFFENSE", "PHI"),
+    ("Jalen Hurts", "PRO_BOWL", 2025, "OFFENSE", "PHI"),
+    ("Jordan Love", "PRO_BOWL", 2024, "OFFENSE", "GNB"),
+    ("Jordan Love", "PRO_BOWL", 2025, "OFFENSE", "GNB"),
+    ("Brock Purdy", "PRO_BOWL", 2023, "OFFENSE", "SFO"),
+    ("Brock Purdy", "PRO_BOWL", 2024, "OFFENSE", "SFO"),
+    ("Baker Mayfield", "PRO_BOWL", 2023, "OFFENSE", "TAM"),
+    ("Baker Mayfield", "PRO_BOWL", 2024, "OFFENSE", "TAM"),
+    ("Sam Darnold", "PRO_BOWL", 2024, "OFFENSE", "MIN"),
+    ("Jahmyr Gibbs", "PRO_BOWL", 2023, "OFFENSE", "DET"),
+    ("Jahmyr Gibbs", "PRO_BOWL", 2024, "OFFENSE", "DET"),
+    ("Jahmyr Gibbs", "PRO_BOWL", 2025, "OFFENSE", "DET"),
+    ("Bijan Robinson", "PRO_BOWL", 2024, "OFFENSE", "ATL"),
+    ("Bijan Robinson", "PRO_BOWL", 2025, "OFFENSE", "ATL"),
+    ("Kyren Williams", "PRO_BOWL", 2023, "OFFENSE", "LAR"),
+    ("Kyren Williams", "PRO_BOWL", 2024, "OFFENSE", "LAR"),
+    ("James Cook", "PRO_BOWL", 2023, "OFFENSE", "BUF"),
+    ("James Cook", "PRO_BOWL", 2024, "OFFENSE", "BUF"),
+    ("Bucky Irving", "PRO_BOWL", 2024, "OFFENSE", "TAM"),
+    ("Bucky Irving", "PRO_BOWL", 2025, "OFFENSE", "TAM"),
+    ("Nico Collins", "PRO_BOWL", 2024, "OFFENSE", "HOU"),
+    ("Nico Collins", "PRO_BOWL", 2025, "OFFENSE", "HOU"),
+    ("Terry McLaurin", "PRO_BOWL", 2022, "OFFENSE", "WAS"),
+    ("Terry McLaurin", "PRO_BOWL", 2024, "OFFENSE", "WAS"),
+    ("Drake London", "PRO_BOWL", 2024, "OFFENSE", "ATL"),
+    ("Drake London", "PRO_BOWL", 2025, "OFFENSE", "ATL"),
+    ("Garrett Wilson", "PRO_BOWL", 2024, "OFFENSE", "NYJ"),
+    ("Garrett Wilson", "PRO_BOWL", 2025, "OFFENSE", "NYJ"),
+    ("Puka Nacua", "PRO_BOWL", 2023, "OFFENSE", "LAR"),
+    ("Puka Nacua", "PRO_BOWL", 2024, "OFFENSE", "LAR"),
+    ("Trey McBride", "PRO_BOWL", 2024, "OFFENSE", "ARI"),
+    ("Trey McBride", "PRO_BOWL", 2025, "OFFENSE", "ARI"),
+    ("David Njoku", "PRO_BOWL", 2023, "OFFENSE", "CLE"),
+    ("David Njoku", "PRO_BOWL", 2024, "OFFENSE", "CLE"),
+    ("Sam LaPorta", "PRO_BOWL", 2023, "OFFENSE", "DET"),
+    ("Sam LaPorta", "PRO_BOWL", 2024, "OFFENSE", "DET"),
+    ("Penei Sewell", "PRO_BOWL", 2022, "OFFENSE", "DET"),
+    ("Penei Sewell", "PRO_BOWL", 2023, "OFFENSE", "DET"),
+    ("Penei Sewell", "PRO_BOWL", 2024, "OFFENSE", "DET"),
+    ("Penei Sewell", "PRO_BOWL", 2025, "OFFENSE", "DET"),
+    ("Lane Johnson", "PRO_BOWL", 2017, "OFFENSE", "PHI"),
+    ("Lane Johnson", "PRO_BOWL", 2018, "OFFENSE", "PHI"),
+    ("Lane Johnson", "PRO_BOWL", 2019, "OFFENSE", "PHI"),
+    ("Lane Johnson", "PRO_BOWL", 2022, "OFFENSE", "PHI"),
+    ("Lane Johnson", "PRO_BOWL", 2023, "OFFENSE", "PHI"),
+    ("Lane Johnson", "PRO_BOWL", 2024, "OFFENSE", "PHI"),
+    ("Tristan Wirfs", "PRO_BOWL", 2021, "OFFENSE", "TAM"),
+    ("Tristan Wirfs", "PRO_BOWL", 2022, "OFFENSE", "TAM"),
+    ("Tristan Wirfs", "PRO_BOWL", 2023, "OFFENSE", "TAM"),
+    ("Tristan Wirfs", "PRO_BOWL", 2024, "OFFENSE", "TAM"),
+    ("Landon Dickerson", "PRO_BOWL", 2022, "OFFENSE", "PHI"),
+    ("Landon Dickerson", "PRO_BOWL", 2023, "OFFENSE", "PHI"),
+    ("Landon Dickerson", "PRO_BOWL", 2024, "OFFENSE", "PHI"),
+    ("Tyler Linderbaum", "PRO_BOWL", 2023, "OFFENSE", "BAL"),
+    ("Tyler Linderbaum", "PRO_BOWL", 2024, "OFFENSE", "BAL"),
+    ("Frank Ragnow", "PRO_BOWL", 2020, "OFFENSE", "DET"),
+    ("Frank Ragnow", "PRO_BOWL", 2022, "OFFENSE", "DET"),
+    ("Frank Ragnow", "PRO_BOWL", 2023, "OFFENSE", "DET"),
+    ("Frank Ragnow", "PRO_BOWL", 2024, "OFFENSE", "DET"),
+    ("Creed Humphrey", "PRO_BOWL", 2022, "OFFENSE", "KC"),
+    ("Creed Humphrey", "PRO_BOWL", 2023, "OFFENSE", "KC"),
+    ("Creed Humphrey", "PRO_BOWL", 2024, "OFFENSE", "KC"),
+    ("Trey Hendrickson", "PRO_BOWL", 2021, "DEFENSE", "CIN"),
+    ("Trey Hendrickson", "PRO_BOWL", 2022, "DEFENSE", "CIN"),
+    ("Trey Hendrickson", "PRO_BOWL", 2023, "DEFENSE", "CIN"),
+    ("Trey Hendrickson", "PRO_BOWL", 2024, "DEFENSE", "CIN"),
+    ("Danielle Hunter", "PRO_BOWL", 2018, "DEFENSE", "MIN"),
+    ("Danielle Hunter", "PRO_BOWL", 2019, "DEFENSE", "MIN"),
+    ("Danielle Hunter", "PRO_BOWL", 2022, "DEFENSE", "MIN"),
+    ("Danielle Hunter", "PRO_BOWL", 2023, "DEFENSE", "MIN"),
+    ("Danielle Hunter", "PRO_BOWL", 2024, "DEFENSE", "HOU"),
+    ("Maxx Crosby", "PRO_BOWL", 2021, "DEFENSE", "LVR"),
+    ("Maxx Crosby", "PRO_BOWL", 2022, "DEFENSE", "LVR"),
+    ("Maxx Crosby", "PRO_BOWL", 2023, "DEFENSE", "LVR"),
+    ("Maxx Crosby", "PRO_BOWL", 2024, "DEFENSE", "LVR"),
+    ("Will Anderson Jr.", "PRO_BOWL", 2023, "DEFENSE", "HOU"),
+    ("Will Anderson Jr.", "PRO_BOWL", 2024, "DEFENSE", "HOU"),
+    ("Chris Jones", "PRO_BOWL", 2019, "DEFENSE", "KC"),
+    ("Chris Jones", "PRO_BOWL", 2020, "DEFENSE", "KC"),
+    ("Chris Jones", "PRO_BOWL", 2021, "DEFENSE", "KC"),
+    ("Chris Jones", "PRO_BOWL", 2022, "DEFENSE", "KC"),
+    ("Chris Jones", "PRO_BOWL", 2023, "DEFENSE", "KC"),
+    ("Chris Jones", "PRO_BOWL", 2024, "DEFENSE", "KC"),
+    ("Dexter Lawrence", "PRO_BOWL", 2022, "DEFENSE", "NYG"),
+    ("Dexter Lawrence", "PRO_BOWL", 2023, "DEFENSE", "NYG"),
+    ("Dexter Lawrence", "PRO_BOWL", 2024, "DEFENSE", "NYG"),
+    ("Cameron Heyward", "PRO_BOWL", 2017, "DEFENSE", "PIT"),
+    ("Cameron Heyward", "PRO_BOWL", 2018, "DEFENSE", "PIT"),
+    ("Cameron Heyward", "PRO_BOWL", 2019, "DEFENSE", "PIT"),
+    ("Cameron Heyward", "PRO_BOWL", 2020, "DEFENSE", "PIT"),
+    ("Cameron Heyward", "PRO_BOWL", 2021, "DEFENSE", "PIT"),
+    ("Cameron Heyward", "PRO_BOWL", 2022, "DEFENSE", "PIT"),
+    ("Cameron Heyward", "PRO_BOWL", 2024, "DEFENSE", "PIT"),
+    ("Quinnen Williams", "PRO_BOWL", 2022, "DEFENSE", "NYJ"),
+    ("Quinnen Williams", "PRO_BOWL", 2023, "DEFENSE", "NYJ"),
+    ("Quinnen Williams", "PRO_BOWL", 2024, "DEFENSE", "NYJ"),
+    ("Jalen Carter", "PRO_BOWL", 2024, "DEFENSE", "PHI"),
+    ("Jalen Carter", "PRO_BOWL", 2025, "DEFENSE", "PHI"),
+    ("Marlon Humphrey", "PRO_BOWL", 2019, "DEFENSE", "BAL"),
+    ("Marlon Humphrey", "PRO_BOWL", 2020, "DEFENSE", "BAL"),
+    ("Marlon Humphrey", "PRO_BOWL", 2022, "DEFENSE", "BAL"),
+    ("Marlon Humphrey", "PRO_BOWL", 2024, "DEFENSE", "BAL"),
+    ("Trent McDuffie", "PRO_BOWL", 2024, "DEFENSE", "KC"),
+    ("Trent McDuffie", "PRO_BOWL", 2025, "DEFENSE", "KC"),
+    ("Derek Stingley Jr.", "PRO_BOWL", 2024, "DEFENSE", "HOU"),
+    ("Derek Stingley Jr.", "PRO_BOWL", 2025, "DEFENSE", "HOU"),
+    ("Denzel Ward", "PRO_BOWL", 2018, "DEFENSE", "CLE"),
+    ("Denzel Ward", "PRO_BOWL", 2021, "DEFENSE", "CLE"),
+    ("Denzel Ward", "PRO_BOWL", 2023, "DEFENSE", "CLE"),
+    ("Denzel Ward", "PRO_BOWL", 2024, "DEFENSE", "CLE"),
+    ("Brandon Aubrey", "PRO_BOWL", 2023, "SPECIAL_TEAMS", "DAL"),
+    ("Brandon Aubrey", "PRO_BOWL", 2024, "SPECIAL_TEAMS", "DAL"),
+    ("Chris Boswell", "PRO_BOWL", 2017, "SPECIAL_TEAMS", "PIT"),
+    ("Chris Boswell", "PRO_BOWL", 2024, "SPECIAL_TEAMS", "PIT"),
+    ("Jack Fox", "PRO_BOWL", 2020, "SPECIAL_TEAMS", "DET"),
+    ("Jack Fox", "PRO_BOWL", 2024, "SPECIAL_TEAMS", "DET"),
+
+    # ------------------------------------------------------------------------
+    # 2025 PRO BOWL & ALL-PRO EXPANSION
+    # ------------------------------------------------------------------------
+    ("Patrick Mahomes", "PRO_BOWL", 2025, "OFFENSE", "KC"),
+    ("Lamar Jackson", "PRO_BOWL", 2025, "OFFENSE", "BAL"),
+    ("Josh Allen", "PRO_BOWL", 2025, "OFFENSE", "BUF"),
+    ("Joe Burrow", "PRO_BOWL", 2025, "OFFENSE", "CIN"),
+    ("Saquon Barkley", "PRO_BOWL", 2025, "OFFENSE", "PHI"),
+    ("Derrick Henry", "PRO_BOWL", 2025, "OFFENSE", "BAL"),
+    ("Josh Jacobs", "PRO_BOWL", 2025, "OFFENSE", "GNB"),
+    ("Justin Jefferson", "PRO_BOWL", 2025, "OFFENSE", "MIN"),
+    ("Ja'Marr Chase", "PRO_BOWL", 2025, "OFFENSE", "CIN"),
+    ("CeeDee Lamb", "PRO_BOWL", 2025, "OFFENSE", "DAL"),
+    ("Amon-Ra St. Brown", "PRO_BOWL", 2025, "OFFENSE", "DET"),
+    ("A.J. Brown", "PRO_BOWL", 2025, "OFFENSE", "PHI"),
+    ("George Kittle", "PRO_BOWL", 2025, "OFFENSE", "SFO"),
+    ("Travis Kelce", "PRO_BOWL", 2025, "OFFENSE", "KC"),
+    ("Myles Garrett", "PRO_BOWL", 2025, "DEFENSE", "CLE"),
+    ("T.J. Watt", "PRO_BOWL", 2025, "DEFENSE", "PIT"),
+    ("Micah Parsons", "PRO_BOWL", 2025, "DEFENSE", "DAL"),
+    ("Fred Warner", "PRO_BOWL", 2025, "DEFENSE", "SFO"),
+    ("Roquan Smith", "PRO_BOWL", 2025, "DEFENSE", "BAL"),
+    ("Sauce Gardner", "PRO_BOWL", 2025, "DEFENSE", "NYJ"),
+    ("Patrick Surtain II", "PRO_BOWL", 2025, "DEFENSE", "DEN"),
+    ("Minkah Fitzpatrick", "PRO_BOWL", 2025, "DEFENSE", "PIT"),
+    ("Lamar Jackson", "FIRST_TEAM_ALL_PRO", 2025, "OFFENSE", "BAL"),
+    ("Saquon Barkley", "FIRST_TEAM_ALL_PRO", 2025, "OFFENSE", "PHI"),
+    ("Justin Jefferson", "FIRST_TEAM_ALL_PRO", 2025, "OFFENSE", "MIN"),
+    ("Ja'Marr Chase", "FIRST_TEAM_ALL_PRO", 2025, "OFFENSE", "CIN"),
+    ("George Kittle", "FIRST_TEAM_ALL_PRO", 2025, "OFFENSE", "SFO"),
+    ("Penei Sewell", "FIRST_TEAM_ALL_PRO", 2025, "OFFENSE", "DET"),
+    ("Lane Johnson", "FIRST_TEAM_ALL_PRO", 2025, "OFFENSE", "PHI"),
+    ("Myles Garrett", "FIRST_TEAM_ALL_PRO", 2025, "DEFENSE", "CLE"),
+    ("T.J. Watt", "FIRST_TEAM_ALL_PRO", 2025, "DEFENSE", "PIT"),
+    ("Fred Warner", "FIRST_TEAM_ALL_PRO", 2025, "DEFENSE", "SFO"),
+    ("Patrick Surtain II", "FIRST_TEAM_ALL_PRO", 2025, "DEFENSE", "DEN"),
+    ("Kyle Hamilton", "FIRST_TEAM_ALL_PRO", 2025, "DEFENSE", "BAL"),
+
+    # ------------------------------------------------------------------------
+    # SUPER BOWL CHAMPIONS (2024 & 2023 Teams)
+    # ------------------------------------------------------------------------
+    ("Jalen Hurts", "SUPER_BOWL_CHAMPION", 2024, "OFFENSE", "PHI"),
+    ("Saquon Barkley", "SUPER_BOWL_CHAMPION", 2024, "OFFENSE", "PHI"),
+    ("A.J. Brown", "SUPER_BOWL_CHAMPION", 2024, "OFFENSE", "PHI"),
+    ("DeVonta Smith", "SUPER_BOWL_CHAMPION", 2024, "OFFENSE", "PHI"),
+    ("Dallas Goedert", "SUPER_BOWL_CHAMPION", 2024, "OFFENSE", "PHI"),
+    ("Lane Johnson", "SUPER_BOWL_CHAMPION", 2024, "OFFENSE", "PHI"),
+    ("Jordan Mailata", "SUPER_BOWL_CHAMPION", 2024, "OFFENSE", "PHI"),
+    ("Landon Dickerson", "SUPER_BOWL_CHAMPION", 2024, "OFFENSE", "PHI"),
+    ("Cam Jurgens", "SUPER_BOWL_CHAMPION", 2024, "OFFENSE", "PHI"),
+    ("Jalen Carter", "SUPER_BOWL_CHAMPION", 2024, "DEFENSE", "PHI"),
+    ("Jordan Davis", "SUPER_BOWL_CHAMPION", 2024, "DEFENSE", "PHI"),
+    ("Zack Baun", "SUPER_BOWL_CHAMPION", 2024, "DEFENSE", "PHI"),
+    ("Josh Sweat", "SUPER_BOWL_CHAMPION", 2024, "DEFENSE", "PHI"),
+    ("Brandon Graham", "SUPER_BOWL_CHAMPION", 2024, "DEFENSE", "PHI"),
+    ("Darius Slay", "SUPER_BOWL_CHAMPION", 2024, "DEFENSE", "PHI"),
+    ("Quinyon Mitchell", "SUPER_BOWL_CHAMPION", 2024, "DEFENSE", "PHI"),
+    ("Cooper DeJean", "SUPER_BOWL_CHAMPION", 2024, "DEFENSE", "PHI"),
+    ("Reed Blankenship", "SUPER_BOWL_CHAMPION", 2024, "DEFENSE", "PHI"),
+    ("C.J. Gardner-Johnson", "SUPER_BOWL_CHAMPION", 2024, "DEFENSE", "PHI"),
+    ("Jake Elliott", "SUPER_BOWL_CHAMPION", 2024, "SPECIAL_TEAMS", "PHI"),
+    ("Patrick Mahomes", "SUPER_BOWL_CHAMPION", 2023, "OFFENSE", "KC"),
+    ("Travis Kelce", "SUPER_BOWL_CHAMPION", 2023, "OFFENSE", "KC"),
+    ("Chris Jones", "SUPER_BOWL_CHAMPION", 2023, "DEFENSE", "KC"),
+    ("Harrison Butker", "SUPER_BOWL_CHAMPION", 2023, "SPECIAL_TEAMS", "KC"),
+    ("Trent McDuffie", "SUPER_BOWL_CHAMPION", 2023, "DEFENSE", "KC"),
+    ("George Karlaftis", "SUPER_BOWL_CHAMPION", 2023, "DEFENSE", "KC"),
+    ("Isiah Pacheco", "SUPER_BOWL_CHAMPION", 2023, "OFFENSE", "KC"),
+    ("Creed Humphrey", "SUPER_BOWL_CHAMPION", 2023, "OFFENSE", "KC"),
+    ("Joe Thuney", "SUPER_BOWL_CHAMPION", 2023, "OFFENSE", "KC"),
+    ("Trey Smith", "SUPER_BOWL_CHAMPION", 2023, "OFFENSE", "KC"),
 ]
 
 
 class AccoladesSyncService:
     def __init__(self, db_url: Optional[str] = None):
         self.db_url = db_url or settings.async_database_url
-        self.engine = create_async_engine(self.db_url, echo=False)
+        self.engine = create_async_engine(
+            self.db_url,
+            echo=False,
+            connect_args={"statement_cache_size": 0, "prepared_statement_cache_size": 0},
+        )
         self.session_maker = async_sessionmaker(self.engine, expire_on_commit=False)
 
     async def sync_accolades(self):
@@ -682,7 +911,95 @@ class AccoladesSyncService:
             except Exception as exc:
                 logger.warning(f"Historical draft accolades enrichment skipped: {exc}")
 
-            # 5. Log final summary
+            # 5. Recompute Player Career Stats
+            logger.info("Recomputing player career statistics with newly synced accolades...")
+            recompute_stmt = text("""
+                INSERT INTO player_career_stats (
+                    player_id, seasons_played, games_played,
+                    passing_yards, passing_tds, interceptions,
+                    rushing_yards, rushing_tds, receptions,
+                    receiving_yards, receiving_tds, sacks,
+                    defensive_interceptions, pro_bowls, all_pros,
+                    franchises_played_count
+                )
+                SELECT 
+                    p.player_id,
+                    COALESCE(stat_agg.seasons, 0) AS seasons_played,
+                    COALESCE(stint_agg.total_gp, 0) AS games_played,
+                    COALESCE(stat_agg.pass_yds, 0) AS passing_yards,
+                    COALESCE(stat_agg.pass_tds, 0) AS passing_tds,
+                    COALESCE(stat_agg.ints, 0) AS interceptions,
+                    COALESCE(stat_agg.rush_yds, 0) AS rushing_yards,
+                    COALESCE(stat_agg.rush_tds, 0) AS rushing_tds,
+                    COALESCE(stat_agg.recs, 0) AS receptions,
+                    COALESCE(stat_agg.rec_yds, 0) AS receiving_yards,
+                    COALESCE(stat_agg.rec_tds, 0) AS receiving_tds,
+                    COALESCE(stat_agg.sacks, 0.0) AS sacks,
+                    COALESCE(stat_agg.def_ints, 0) AS defensive_interceptions,
+                    COALESCE(acc_pb.pb_cnt, 0) AS pro_bowls,
+                    COALESCE(acc_ap.ap_cnt, 0) AS all_pros,
+                    COALESCE(stint_agg.franchise_cnt, 0) AS franchises_played_count
+                FROM players p
+                LEFT JOIN (
+                    SELECT 
+                        player_id,
+                        COUNT(stat_id) AS seasons,
+                        SUM(passing_yards) AS pass_yds,
+                        SUM(passing_tds) AS pass_tds,
+                        SUM(interceptions) AS ints,
+                        SUM(rushing_yards) AS rush_yds,
+                        SUM(rushing_tds) AS rush_tds,
+                        SUM(receptions) AS recs,
+                        SUM(receiving_yards) AS rec_yds,
+                        SUM(receiving_tds) AS rec_tds,
+                        SUM(sacks) AS sacks,
+                        SUM(defensive_interceptions) AS def_ints
+                    FROM player_season_stats
+                    GROUP BY player_id
+                ) stat_agg ON p.player_id = stat_agg.player_id
+                LEFT JOIN (
+                    SELECT 
+                        player_id,
+                        SUM(games_played) AS total_gp,
+                        COUNT(DISTINCT franchise_id) AS franchise_cnt
+                    FROM player_team_stints
+                    WHERE games_played >= 1
+                    GROUP BY player_id
+                ) stint_agg ON p.player_id = stint_agg.player_id
+                LEFT JOIN (
+                    SELECT player_id, COUNT(*) AS pb_cnt
+                    FROM accolades
+                    WHERE accolade_type = 'PRO_BOWL'
+                    GROUP BY player_id
+                ) acc_pb ON p.player_id = acc_pb.player_id
+                LEFT JOIN (
+                    SELECT player_id, COUNT(*) AS ap_cnt
+                    FROM accolades
+                    WHERE accolade_type = 'FIRST_TEAM_ALL_PRO'
+                    GROUP BY player_id
+                ) acc_ap ON p.player_id = acc_ap.player_id
+                WHERE stat_agg.player_id IS NOT NULL OR stint_agg.player_id IS NOT NULL
+                ON CONFLICT (player_id) DO UPDATE SET
+                    seasons_played = EXCLUDED.seasons_played,
+                    games_played = EXCLUDED.games_played,
+                    passing_yards = EXCLUDED.passing_yards,
+                    passing_tds = EXCLUDED.passing_tds,
+                    interceptions = EXCLUDED.interceptions,
+                    rushing_yards = EXCLUDED.rushing_yards,
+                    rushing_tds = EXCLUDED.rushing_tds,
+                    receptions = EXCLUDED.receptions,
+                    receiving_yards = EXCLUDED.receiving_yards,
+                    receiving_tds = EXCLUDED.receiving_tds,
+                    sacks = EXCLUDED.sacks,
+                    defensive_interceptions = EXCLUDED.defensive_interceptions,
+                    pro_bowls = EXCLUDED.pro_bowls,
+                    all_pros = EXCLUDED.all_pros,
+                    franchises_played_count = EXCLUDED.franchises_played_count;
+            """)
+            await session.execute(recompute_stmt)
+            await session.commit()
+
+            # 6. Log final summary
             summary_q = text("""
                 SELECT accolade_type, count(*), min(season_year), max(season_year)
                 FROM accolades

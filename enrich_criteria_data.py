@@ -46,6 +46,7 @@ async def run_enrichment(min_coverage: int = 50, dry_run: bool = False) -> None:
         echo=False,
         pool_size=10,
         max_overflow=5,
+        connect_args={"statement_cache_size": 0, "prepared_statement_cache_size": 0},
     )
     session_factory = async_sessionmaker(bind=engine, expire_on_commit=False)
 

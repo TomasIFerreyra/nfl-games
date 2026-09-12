@@ -36,6 +36,8 @@ class GridPrecomputeService:
     persists full canonical solution sets in PostgreSQL JSONB and warms Redis Sets.
     """
 
+    _CRITERION_CACHE: Dict[str, Set[str]] = {}
+
     @classmethod
     async def get_qualifying_player_ids_for_criterion(
         cls,
@@ -49,6 +51,9 @@ class GridPrecomputeService:
             criterion = {"criterion_id": criterion}
         c_type = str(criterion.get("type", "")).upper()
         c_id = criterion.get("criterion_id", "")
+        if c_id and c_id in cls._CRITERION_CACHE:
+            return set(cls._CRITERION_CACHE[c_id])
+
         params = criterion.get("parameters") or {}
         qualifying_ids: Set[str] = set()
 
@@ -332,6 +337,9 @@ class GridPrecomputeService:
             for player_key, college in CANONICAL_COLLEGE_MAP.items():
                 if college.lower() == target_college:
                     qualifying_ids.add(player_key)
+
+        if c_id:
+            cls._CRITERION_CACHE[c_id] = set(qualifying_ids)
 
         return qualifying_ids
 

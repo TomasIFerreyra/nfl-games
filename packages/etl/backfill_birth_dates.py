@@ -218,8 +218,11 @@ async def run_backfill(db_url: Optional[str] = None) -> None:
     if "asyncpg" not in conn_url and conn_url.startswith("postgresql://"):
         conn_url = conn_url.replace("postgresql://", "postgresql+asyncpg://")
 
-    logger.info(f"Target database connection: {conn_url.split('@')[-1]}")
-    engine = create_async_engine(conn_url, echo=False)
+    engine = create_async_engine(
+        conn_url,
+        echo=False,
+        connect_args={"statement_cache_size": 0, "prepared_statement_cache_size": 0},
+    )
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     df_raw = fetch_nflverse_player_roster()

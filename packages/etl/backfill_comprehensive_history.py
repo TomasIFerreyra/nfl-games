@@ -66,7 +66,7 @@ def clean_int(val: Any) -> Optional[int]:
 class ComprehensiveHistoryBackfill:
     def __init__(self, db_url: Optional[str] = None):
         self.db_url = db_url or settings.async_database_url
-        self.engine = create_async_engine(self.db_url, echo=False)
+        self.engine = create_async_engine(self.db_url, echo=False, connect_args={"statement_cache_size": 0})
         self.session_maker = async_sessionmaker(self.engine, expire_on_commit=False)
 
     async def seed_franchises(self, session: AsyncSession) -> None:

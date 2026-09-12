@@ -184,7 +184,7 @@ class DataEnrichmentService:
                     func.lower(Player.full_name) == name.lower()
                 )
             )
-            p_id = p_res.scalar_one_or_none()
+            p_id = p_res.scalars().first()
             if not p_id:
                 continue
 
@@ -194,7 +194,7 @@ class DataEnrichmentService:
                 Accolade.accolade_type == acc_type,
                 Accolade.season_year == year,
             )
-            exists = (await session.execute(exists_stmt)).scalar_one_or_none()
+            exists = (await session.execute(exists_stmt)).scalars().first()
             if not exists:
                 session.add(
                     Accolade(
@@ -216,101 +216,94 @@ class DataEnrichmentService:
         """
         logger.info("Precomputing player career stats...")
 
-        # Aggregate from PlayerSeasonStat
-        stat_agg_query = (
-            select(
-                PlayerSeasonStat.player_id,
-                func.count(PlayerSeasonStat.stat_id).label("seasons"),
-                func.coalesce(func.sum(PlayerSeasonStat.passing_yards), 0).label("pass_yds"),
-                func.coalesce(func.sum(PlayerSeasonStat.passing_tds), 0).label("pass_tds"),
-                func.coalesce(func.sum(PlayerSeasonStat.interceptions), 0).label("ints"),
-                func.coalesce(func.sum(PlayerSeasonStat.rushing_yards), 0).label("rush_yds"),
-                func.coalesce(func.sum(PlayerSeasonStat.rushing_tds), 0).label("rush_tds"),
-                func.coalesce(func.sum(PlayerSeasonStat.receptions), 0).label("recs"),
-                func.coalesce(func.sum(PlayerSeasonStat.receiving_yards), 0).label("rec_yds"),
-                func.coalesce(func.sum(PlayerSeasonStat.receiving_tds), 0).label("rec_tds"),
-                func.coalesce(func.sum(PlayerSeasonStat.sacks), 0).label("sacks"),
-                func.coalesce(func.sum(PlayerSeasonStat.defensive_interceptions), 0).label("def_ints"),
+        stmt = text("""
+            INSERT INTO player_career_stats (
+                player_id, seasons_played, games_played,
+                passing_yards, passing_tds, interceptions,
+                rushing_yards, rushing_tds, receptions,
+                receiving_yards, receiving_tds, sacks,
+                defensive_interceptions, pro_bowls, all_pros,
+                franchises_played_count
             )
-            .group_by(PlayerSeasonStat.player_id)
-        )
-        stat_rows = (await session.execute(stat_agg_query)).fetchall()
-
-        upserted_count = 0
-        for r in stat_rows:
-            p_id = r[0]
-
-            # Count distinct franchises played
-            stint_q = select(
-                func.count(func.distinct(PlayerTeamStint.franchise_id)),
-                func.coalesce(func.sum(PlayerTeamStint.games_played), 0),
-            ).where(
-                PlayerTeamStint.player_id == p_id,
-                PlayerTeamStint.games_played >= 1,
-            )
-            stint_row = (await session.execute(stint_q)).first()
-            f_count = stint_row[0] if stint_row else 0
-            gp_count = stint_row[1] if stint_row else 0
-
-            # Count Pro Bowls and All-Pros
-            pb_q = select(func.count(Accolade.accolade_id)).where(
-                Accolade.player_id == p_id,
-                Accolade.accolade_type == "PRO_BOWL",
-            )
-            pb_count = (await session.execute(pb_q)).scalar() or 0
-
-            ap_q = select(func.count(Accolade.accolade_id)).where(
-                Accolade.player_id == p_id,
-                Accolade.accolade_type == "FIRST_TEAM_ALL_PRO",
-            )
-            ap_count = (await session.execute(ap_q)).scalar() or 0
-
-            # Upsert into PlayerCareerStat
-            career_q = select(PlayerCareerStat).where(PlayerCareerStat.player_id == p_id)
-            career_rec = (await session.execute(career_q)).scalar_one_or_none()
-
-            if not career_rec:
-                career_rec = PlayerCareerStat(
-                    player_id=p_id,
-                    seasons_played=r[1],
-                    games_played=gp_count,
-                    passing_yards=r[2],
-                    passing_tds=r[3],
-                    interceptions=r[4],
-                    rushing_yards=r[5],
-                    rushing_tds=r[6],
-                    receptions=r[7],
-                    receiving_yards=r[8],
-                    receiving_tds=r[9],
-                    sacks=Decimal(str(round(float(r[10]), 1))),
-                    defensive_interceptions=r[11],
-                    pro_bowls=pb_count,
-                    all_pros=ap_count,
-                    franchises_played_count=f_count,
-                )
-                session.add(career_rec)
-            else:
-                career_rec.seasons_played = r[1]
-                career_rec.games_played = gp_count
-                career_rec.passing_yards = r[2]
-                career_rec.passing_tds = r[3]
-                career_rec.interceptions = r[4]
-                career_rec.rushing_yards = r[5]
-                career_rec.rushing_tds = r[6]
-                career_rec.receptions = r[7]
-                career_rec.receiving_yards = r[8]
-                career_rec.receiving_tds = r[9]
-                career_rec.sacks = Decimal(str(round(float(r[10]), 1)))
-                career_rec.defensive_interceptions = r[11]
-                career_rec.pro_bowls = pb_count
-                career_rec.all_pros = ap_count
-                career_rec.franchises_played_count = f_count
-
-            upserted_count += 1
-
+            SELECT 
+                p.player_id,
+                COALESCE(stat_agg.seasons, 0) AS seasons_played,
+                COALESCE(stint_agg.total_gp, 0) AS games_played,
+                COALESCE(stat_agg.pass_yds, 0) AS passing_yards,
+                COALESCE(stat_agg.pass_tds, 0) AS passing_tds,
+                COALESCE(stat_agg.ints, 0) AS interceptions,
+                COALESCE(stat_agg.rush_yds, 0) AS rushing_yards,
+                COALESCE(stat_agg.rush_tds, 0) AS rushing_tds,
+                COALESCE(stat_agg.recs, 0) AS receptions,
+                COALESCE(stat_agg.rec_yds, 0) AS receiving_yards,
+                COALESCE(stat_agg.rec_tds, 0) AS receiving_tds,
+                COALESCE(stat_agg.sacks, 0.0) AS sacks,
+                COALESCE(stat_agg.def_ints, 0) AS defensive_interceptions,
+                COALESCE(acc_pb.pb_cnt, 0) AS pro_bowls,
+                COALESCE(acc_ap.ap_cnt, 0) AS all_pros,
+                COALESCE(stint_agg.franchise_cnt, 0) AS franchises_played_count
+            FROM players p
+            LEFT JOIN (
+                SELECT 
+                    player_id,
+                    COUNT(stat_id) AS seasons,
+                    SUM(passing_yards) AS pass_yds,
+                    SUM(passing_tds) AS pass_tds,
+                    SUM(interceptions) AS ints,
+                    SUM(rushing_yards) AS rush_yds,
+                    SUM(rushing_tds) AS rush_tds,
+                    SUM(receptions) AS recs,
+                    SUM(receiving_yards) AS rec_yds,
+                    SUM(receiving_tds) AS rec_tds,
+                    SUM(sacks) AS sacks,
+                    SUM(defensive_interceptions) AS def_ints
+                FROM player_season_stats
+                GROUP BY player_id
+            ) stat_agg ON p.player_id = stat_agg.player_id
+            LEFT JOIN (
+                SELECT 
+                    player_id,
+                    SUM(games_played) AS total_gp,
+                    COUNT(DISTINCT franchise_id) AS franchise_cnt
+                FROM player_team_stints
+                WHERE games_played >= 1
+                GROUP BY player_id
+            ) stint_agg ON p.player_id = stint_agg.player_id
+            LEFT JOIN (
+                SELECT player_id, COUNT(*) AS pb_cnt
+                FROM accolades
+                WHERE accolade_type = 'PRO_BOWL'
+                GROUP BY player_id
+            ) acc_pb ON p.player_id = acc_pb.player_id
+            LEFT JOIN (
+                SELECT player_id, COUNT(*) AS ap_cnt
+                FROM accolades
+                WHERE accolade_type = 'FIRST_TEAM_ALL_PRO'
+                GROUP BY player_id
+            ) acc_ap ON p.player_id = acc_ap.player_id
+            WHERE stat_agg.player_id IS NOT NULL OR stint_agg.player_id IS NOT NULL
+            ON CONFLICT (player_id) DO UPDATE SET
+                seasons_played = EXCLUDED.seasons_played,
+                games_played = EXCLUDED.games_played,
+                passing_yards = EXCLUDED.passing_yards,
+                passing_tds = EXCLUDED.passing_tds,
+                interceptions = EXCLUDED.interceptions,
+                rushing_yards = EXCLUDED.rushing_yards,
+                rushing_tds = EXCLUDED.rushing_tds,
+                receptions = EXCLUDED.receptions,
+                receiving_yards = EXCLUDED.receiving_yards,
+                receiving_tds = EXCLUDED.receiving_tds,
+                sacks = EXCLUDED.sacks,
+                defensive_interceptions = EXCLUDED.defensive_interceptions,
+                pro_bowls = EXCLUDED.pro_bowls,
+                all_pros = EXCLUDED.all_pros,
+                franchises_played_count = EXCLUDED.franchises_played_count;
+        """)
+        res = await session.execute(stmt)
         await session.commit()
-        logger.info(f"Populated precomputed career stats for {upserted_count} players.")
-        return upserted_count
+        rowcount = res.rowcount if hasattr(res, "rowcount") and res.rowcount >= 0 else 1
+        logger.info(f"Precomputed career stats for {rowcount} players.")
+        return rowcount
 
     @classmethod
     async def validate_criteria_coverage(

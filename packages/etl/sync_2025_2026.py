@@ -121,43 +121,43 @@ async def seed_team_seasons(session: AsyncSession, years: List[int]) -> None:
     logger.info(f"Seeding team_seasons for years {years}...")
     
     # First make sure foundational franchises exist
-    for f in FOUNDATIONAL_FRANCHISES:
-        await session.execute(text("""
-            INSERT INTO franchises (franchise_id, canonical_name, established_year)
-            VALUES (:franchise_id, :canonical_name, :established_year)
-            ON CONFLICT (franchise_id) DO UPDATE SET
-                canonical_name = EXCLUDED.canonical_name,
-                established_year = EXCLUDED.established_year;
-        """), f)
+    stmt_f = text("""
+        INSERT INTO franchises (franchise_id, canonical_name, established_year)
+        VALUES (:franchise_id, :canonical_name, :established_year)
+        ON CONFLICT (franchise_id) DO UPDATE SET
+            canonical_name = EXCLUDED.canonical_name,
+            established_year = EXCLUDED.established_year;
+    """)
+    await session.execute(stmt_f, FOUNDATIONAL_FRANCHISES)
     await session.commit()
 
-    count = 0
+    ts_records = []
     for yr in years:
         for f in FOUNDATIONAL_FRANCHISES:
             f_id = f["franchise_id"]
             c_name = f["canonical_name"]
-            
-            # Primary team season: {f_id}_{yr}
             ts_id = f"{f_id}_{yr}"
-            await session.execute(text("""
-                INSERT INTO team_seasons (team_season_id, franchise_id, season_year, team_name, team_abbr)
-                VALUES (:team_season_id, :franchise_id, :season_year, :team_name, :team_abbr)
-                ON CONFLICT (team_season_id) DO UPDATE SET
-                    franchise_id = EXCLUDED.franchise_id,
-                    season_year = EXCLUDED.season_year,
-                    team_name = EXCLUDED.team_name,
-                    team_abbr = EXCLUDED.team_abbr;
-            """), {
+            ts_records.append({
                 "team_season_id": ts_id,
                 "franchise_id": f_id,
                 "season_year": yr,
                 "team_name": c_name,
                 "team_abbr": f_id,
             })
-            count += 1
 
+    stmt_ts = text("""
+        INSERT INTO team_seasons (team_season_id, franchise_id, season_year, team_name, team_abbr)
+        VALUES (:team_season_id, :franchise_id, :season_year, :team_name, :team_abbr)
+        ON CONFLICT (team_season_id) DO UPDATE SET
+            franchise_id = EXCLUDED.franchise_id,
+            season_year = EXCLUDED.season_year,
+            team_name = EXCLUDED.team_name,
+            team_abbr = EXCLUDED.team_abbr;
+    """)
+    for i in range(0, len(ts_records), 500):
+        await session.execute(stmt_ts, ts_records[i : i + 500])
     await session.commit()
-    logger.info(f"Seeded {count} team_seasons records.")
+    logger.info(f"Seeded {len(ts_records)} team_seasons records.")
 
 
 def fetch_2025_stats() -> pd.DataFrame:
@@ -227,30 +227,50 @@ async def sync_2025_season(session: AsyncSession) -> Tuple[int, int, int]:
     rosters_2025 = fetch_rosters(2025)
     stats_2025 = fetch_2025_stats()
 
-    # Load existing player mapping: gsis_id -> player_id
-    res = await session.execute(text("SELECT player_id, gsis_id, full_name FROM players WHERE gsis_id IS NOT NULL;"))
-    player_id_by_gsis = {r[1]: r[0] for r in res.fetchall()}
-    
-    res_name = await session.execute(text("SELECT player_id, full_name FROM players;"))
-    player_id_by_name = {r[1].lower(): r[0] for r in res_name.fetchall()}
+    # Load existing player mapping: gsis_id -> player_id, pfr_id -> player_id, name -> player_id
+    res = await session.execute(text("SELECT player_id, gsis_id, pfr_id, full_name FROM players;"))
+    rows = res.fetchall()
+    player_id_by_gsis = {r[1]: r[0] for r in rows if r[1]}
+    player_id_by_pfr = {r[2]: r[0] for r in rows if r[2]}
+    player_id_by_name = {r[3].lower(): r[0] for r in rows if r[3]}
 
     players_upserted = 0
-    # Upsert players from 2025 roster
+    # Batch upsert players from 2025 roster
     if not rosters_2025.empty:
         name_col = "full_name" if "full_name" in rosters_2025.columns else "player_name"
+        player_records = []
+        seen_pids = set()
+
         for _, row in rosters_2025.iterrows():
             gsis_id = clean_str(row.get("gsis_id") or row.get("player_id"))
-            if not gsis_id:
-                continue
-            
+            pfr_id = clean_str(row.get("pfr_id"))
             full_name = clean_str(row.get(name_col))
             if not full_name:
                 continue
             
-            p_id = player_id_by_gsis.get(gsis_id)
+            p_id = None
+            if gsis_id and gsis_id in player_id_by_gsis:
+                p_id = player_id_by_gsis[gsis_id]
+            elif pfr_id and pfr_id in player_id_by_pfr:
+                p_id = player_id_by_pfr[pfr_id]
+            elif full_name.lower() in player_id_by_name:
+                p_id = player_id_by_name[full_name.lower()]
+
             if not p_id:
                 p_id = str(uuid.uuid4())
-                player_id_by_gsis[gsis_id] = p_id
+                if gsis_id:
+                    player_id_by_gsis[gsis_id] = p_id
+                if pfr_id:
+                    player_id_by_pfr[pfr_id] = p_id
+
+            if pfr_id and pfr_id in player_id_by_pfr and player_id_by_pfr[pfr_id] != p_id:
+                pfr_id = None
+            if gsis_id and gsis_id in player_id_by_gsis and player_id_by_gsis[gsis_id] != p_id:
+                gsis_id = None
+
+            if p_id in seen_pids:
+                continue
+            seen_pids.add(p_id)
 
             name_parts = full_name.split(" ", 1)
             first_name = name_parts[0]
@@ -258,38 +278,13 @@ async def sync_2025_season(session: AsyncSession) -> Tuple[int, int, int]:
             pos = clean_str(row.get("position")) or "ATH"
             college = clean_str(row.get("college"))
             headshot = clean_str(row.get("headshot_url"))
-            pfr_id = clean_str(row.get("pfr_id"))
             jersey = clean_int(row.get("jersey_number"))
             draft_yr = clean_int(row.get("entry_year") or row.get("rookie_year") or row.get("draft_year"))
             draft_rd = clean_int(row.get("draft_round"))
             draft_num = clean_int(row.get("draft_number"))
             rookie_yr = clean_int(row.get("rookie_year") or row.get("entry_year")) or 2025
 
-            await session.execute(text("""
-                INSERT INTO players (
-                    player_id, gsis_id, pfr_id, full_name, first_name, last_name,
-                    primary_position, draft_year, draft_round, draft_overall,
-                    college, rookie_year, final_year, is_active, headshot_url, jersey_number
-                )
-                VALUES (
-                    :player_id, :gsis_id, :pfr_id, :full_name, :first_name, :last_name,
-                    :primary_position, :draft_year, :draft_round, :draft_overall,
-                    :college, :rookie_year, NULL, true, :headshot_url, :jersey_number
-                )
-                ON CONFLICT (gsis_id) DO UPDATE SET
-                    full_name = EXCLUDED.full_name,
-                    first_name = EXCLUDED.first_name,
-                    last_name = EXCLUDED.last_name,
-                    primary_position = EXCLUDED.primary_position,
-                    college = COALESCE(players.college, EXCLUDED.college),
-                    draft_year = COALESCE(players.draft_year, EXCLUDED.draft_year),
-                    draft_round = COALESCE(players.draft_round, EXCLUDED.draft_round),
-                    draft_overall = COALESCE(players.draft_overall, EXCLUDED.draft_overall),
-                    is_active = true,
-                    final_year = NULL,
-                    headshot_url = COALESCE(EXCLUDED.headshot_url, players.headshot_url),
-                    jersey_number = COALESCE(EXCLUDED.jersey_number, players.jersey_number);
-            """), {
+            player_records.append({
                 "player_id": p_id,
                 "gsis_id": gsis_id,
                 "pfr_id": pfr_id,
@@ -305,8 +300,39 @@ async def sync_2025_season(session: AsyncSession) -> Tuple[int, int, int]:
                 "headshot_url": headshot[:255] if headshot else None,
                 "jersey_number": jersey,
             })
-            players_upserted += 1
+
+        stmt_p2025 = text("""
+            INSERT INTO players (
+                player_id, gsis_id, pfr_id, full_name, first_name, last_name,
+                primary_position, draft_year, draft_round, draft_overall,
+                college, rookie_year, final_year, is_active, headshot_url, jersey_number
+            )
+            VALUES (
+                :player_id, :gsis_id, :pfr_id, :full_name, :first_name, :last_name,
+                :primary_position, :draft_year, :draft_round, :draft_overall,
+                :college, :rookie_year, NULL, true, :headshot_url, :jersey_number
+            )
+            ON CONFLICT (player_id) DO UPDATE SET
+                gsis_id = COALESCE(players.gsis_id, EXCLUDED.gsis_id),
+                pfr_id = COALESCE(players.pfr_id, EXCLUDED.pfr_id),
+                full_name = EXCLUDED.full_name,
+                first_name = EXCLUDED.first_name,
+                last_name = EXCLUDED.last_name,
+                primary_position = EXCLUDED.primary_position,
+                college = COALESCE(players.college, EXCLUDED.college),
+                draft_year = COALESCE(players.draft_year, EXCLUDED.draft_year),
+                draft_round = COALESCE(players.draft_round, EXCLUDED.draft_round),
+                draft_overall = COALESCE(players.draft_overall, EXCLUDED.draft_overall),
+                is_active = true,
+                final_year = NULL,
+                headshot_url = COALESCE(EXCLUDED.headshot_url, players.headshot_url),
+                jersey_number = COALESCE(EXCLUDED.jersey_number, players.jersey_number);
+        """)
+        for i in range(0, len(player_records), 500):
+            await session.execute(stmt_p2025, player_records[i : i + 500])
         await session.commit()
+        players_upserted = len(player_records)
+        logger.info(f"Upserted {players_upserted} players from 2025 rosters.")
         logger.info(f"Upserted {players_upserted} players from 2025 rosters.")
 
     # Ingest 2025 Player Season Stats
@@ -317,6 +343,8 @@ async def sync_2025_season(session: AsyncSession) -> Tuple[int, int, int]:
         res = await session.execute(text("SELECT player_id, gsis_id FROM players WHERE gsis_id IS NOT NULL;"))
         player_id_by_gsis = {r[1]: r[0] for r in res.fetchall()}
 
+        stat_records = []
+        stint_records = []
         for _, srow in stats_2025.iterrows():
             gsis_id = clean_str(srow.get("player_id"))
             p_id = player_id_by_gsis.get(gsis_id)
@@ -347,32 +375,7 @@ async def sync_2025_season(session: AsyncSession) -> Tuple[int, int, int]:
             sacks = clean_float(srow.get("def_sacks") or srow.get("sacks"))
             def_ints = clean_int(srow.get("def_interceptions") or srow.get("defensive_interceptions")) or 0
 
-            # Upsert into player_season_stats
-            await session.execute(text("""
-                INSERT INTO player_season_stats (
-                    player_id, team_season_id, season_year,
-                    passing_yards, passing_tds, interceptions,
-                    rushing_yards, rushing_tds, receptions,
-                    receiving_yards, receiving_tds, sacks, defensive_interceptions
-                )
-                VALUES (
-                    :player_id, :team_season_id, 2025,
-                    :passing_yards, :passing_tds, :interceptions,
-                    :rushing_yards, :rushing_tds, :receptions,
-                    :receiving_yards, :receiving_tds, :sacks, :defensive_interceptions
-                )
-                ON CONFLICT (player_id, team_season_id, season_year) DO UPDATE SET
-                    passing_yards = EXCLUDED.passing_yards,
-                    passing_tds = EXCLUDED.passing_tds,
-                    interceptions = EXCLUDED.interceptions,
-                    rushing_yards = EXCLUDED.rushing_yards,
-                    rushing_tds = EXCLUDED.rushing_tds,
-                    receptions = EXCLUDED.receptions,
-                    receiving_yards = EXCLUDED.receiving_yards,
-                    receiving_tds = EXCLUDED.receiving_tds,
-                    sacks = EXCLUDED.sacks,
-                    defensive_interceptions = EXCLUDED.defensive_interceptions;
-            """), {
+            stat_records.append({
                 "player_id": p_id,
                 "team_season_id": team_season_id,
                 "passing_yards": pass_yds,
@@ -386,27 +389,58 @@ async def sync_2025_season(session: AsyncSession) -> Tuple[int, int, int]:
                 "sacks": sacks,
                 "defensive_interceptions": def_ints,
             })
-            stats_inserted += 1
 
-            # Upsert into player_team_stints if games_played >= 1
             if games_played >= 1:
-                await session.execute(text("""
-                    INSERT INTO player_team_stints (
-                        player_id, franchise_id, season_year, games_played, games_started
-                    )
-                    VALUES (
-                        :player_id, :franchise_id, 2025, :games_played, 0
-                    )
-                    ON CONFLICT (player_id, franchise_id, season_year) DO UPDATE SET
-                        games_played = GREATEST(player_team_stints.games_played, EXCLUDED.games_played);
-                """), {
+                stint_records.append({
                     "player_id": p_id,
                     "franchise_id": franchise_id,
                     "games_played": games_played,
                 })
-                stints_upserted += 1
+
+        stmt_stats = text("""
+            INSERT INTO player_season_stats (
+                player_id, team_season_id, season_year,
+                passing_yards, passing_tds, interceptions,
+                rushing_yards, rushing_tds, receptions,
+                receiving_yards, receiving_tds, sacks, defensive_interceptions
+            )
+            VALUES (
+                :player_id, :team_season_id, 2025,
+                :passing_yards, :passing_tds, :interceptions,
+                :rushing_yards, :rushing_tds, :receptions,
+                :receiving_yards, :receiving_tds, :sacks, :defensive_interceptions
+            )
+            ON CONFLICT (player_id, team_season_id, season_year) DO UPDATE SET
+                passing_yards = EXCLUDED.passing_yards,
+                passing_tds = EXCLUDED.passing_tds,
+                interceptions = EXCLUDED.interceptions,
+                rushing_yards = EXCLUDED.rushing_yards,
+                rushing_tds = EXCLUDED.rushing_tds,
+                receptions = EXCLUDED.receptions,
+                receiving_yards = EXCLUDED.receiving_yards,
+                receiving_tds = EXCLUDED.receiving_tds,
+                sacks = EXCLUDED.sacks,
+                defensive_interceptions = EXCLUDED.defensive_interceptions;
+        """)
+        for i in range(0, len(stat_records), 500):
+            await session.execute(stmt_stats, stat_records[i : i + 500])
+
+        stmt_stints = text("""
+            INSERT INTO player_team_stints (
+                player_id, franchise_id, season_year, games_played, games_started
+            )
+            VALUES (
+                :player_id, :franchise_id, 2025, :games_played, 0
+            )
+            ON CONFLICT (player_id, franchise_id, season_year) DO UPDATE SET
+                games_played = GREATEST(player_team_stints.games_played, EXCLUDED.games_played);
+        """)
+        for i in range(0, len(stint_records), 500):
+            await session.execute(stmt_stints, stint_records[i : i + 500])
 
         await session.commit()
+        stats_inserted = len(stat_records)
+        stints_upserted = len(stint_records)
         logger.info(f"Ingested {stats_inserted} 2025 player_season_stats records and {stints_upserted} stints.")
 
     return players_upserted, stats_inserted, stints_upserted
@@ -427,108 +461,129 @@ async def sync_2026_rosters(session: AsyncSession) -> Tuple[int, int]:
         return 0, 0
 
     # Load existing player maps
-    res = await session.execute(text("SELECT player_id, gsis_id FROM players WHERE gsis_id IS NOT NULL;"))
-    player_id_by_gsis = {r[1]: r[0] for r in res.fetchall()}
-    
-    res_name = await session.execute(text("SELECT player_id, full_name FROM players;"))
-    player_id_by_name = {r[1].lower(): r[0] for r in res_name.fetchall()}
+    res = await session.execute(text("SELECT player_id, gsis_id, pfr_id, full_name FROM players;"))
+    rows = res.fetchall()
+    player_id_by_gsis = {r[1]: r[0] for r in rows if r[1]}
+    player_id_by_pfr = {r[2]: r[0] for r in rows if r[2]}
+    player_id_by_name = {r[3].lower(): r[0] for r in rows if r[3]}
 
-    players_synced = 0
-    stints_synced = 0
     name_col = "full_name" if "full_name" in rosters_2026.columns else "player_name"
+    p2026_records = []
+    stint2026_records = []
+    seen_pids = set()
 
     for _, row in rosters_2026.iterrows():
         gsis_id = clean_str(row.get("gsis_id") or row.get("player_id"))
+        pfr_id = clean_str(row.get("pfr_id"))
         full_name = clean_str(row.get(name_col))
         if not full_name:
             continue
 
-        p_id = player_id_by_gsis.get(gsis_id) if gsis_id else None
-        if not p_id and full_name.lower() in player_id_by_name:
+        p_id = None
+        if gsis_id and gsis_id in player_id_by_gsis:
+            p_id = player_id_by_gsis[gsis_id]
+        elif pfr_id and pfr_id in player_id_by_pfr:
+            p_id = player_id_by_pfr[pfr_id]
+        elif full_name.lower() in player_id_by_name:
             p_id = player_id_by_name[full_name.lower()]
 
         if not p_id:
             p_id = str(uuid.uuid4())
             if gsis_id:
                 player_id_by_gsis[gsis_id] = p_id
+            if pfr_id:
+                player_id_by_pfr[pfr_id] = p_id
 
-        name_parts = full_name.split(" ", 1)
-        first_name = name_parts[0]
-        last_name = name_parts[1] if len(name_parts) > 1 else ""
-        pos = clean_str(row.get("position")) or "ATH"
-        college = clean_str(row.get("college"))
-        headshot = clean_str(row.get("headshot_url"))
-        pfr_id = clean_str(row.get("pfr_id"))
-        jersey = clean_int(row.get("jersey_number"))
-        draft_yr = clean_int(row.get("entry_year") or row.get("rookie_year") or row.get("draft_year"))
-        draft_rd = clean_int(row.get("draft_round"))
-        draft_num = clean_int(row.get("draft_number"))
-        rookie_yr = clean_int(row.get("rookie_year") or row.get("entry_year")) or 2026
+        if pfr_id and pfr_id in player_id_by_pfr and player_id_by_pfr[pfr_id] != p_id:
+            pfr_id = None
+        if gsis_id and gsis_id in player_id_by_gsis and player_id_by_gsis[gsis_id] != p_id:
+            gsis_id = None
+
+        if p_id not in seen_pids:
+            seen_pids.add(p_id)
+            name_parts = full_name.split(" ", 1)
+            first_name = name_parts[0]
+            last_name = name_parts[1] if len(name_parts) > 1 else ""
+            pos = clean_str(row.get("position")) or "ATH"
+            college = clean_str(row.get("college"))
+            headshot = clean_str(row.get("headshot_url"))
+            jersey = clean_int(row.get("jersey_number"))
+            draft_yr = clean_int(row.get("entry_year") or row.get("rookie_year") or row.get("draft_year"))
+            draft_rd = clean_int(row.get("draft_round"))
+            draft_num = clean_int(row.get("draft_number"))
+            rookie_yr = clean_int(row.get("rookie_year") or row.get("entry_year")) or 2026
+
+            p2026_records.append({
+                "player_id": p_id,
+                "gsis_id": gsis_id,
+                "pfr_id": pfr_id,
+                "full_name": full_name,
+                "first_name": first_name,
+                "last_name": last_name,
+                "primary_position": pos[:10],
+                "draft_year": draft_yr,
+                "draft_round": draft_rd,
+                "draft_overall": draft_num,
+                "college": college[:100] if college else None,
+                "rookie_year": rookie_yr,
+                "headshot_url": headshot[:255] if headshot else None,
+                "jersey_number": jersey,
+            })
+
         raw_team = clean_str(row.get("team"))
-
-        await session.execute(text("""
-            INSERT INTO players (
-                player_id, gsis_id, pfr_id, full_name, first_name, last_name,
-                primary_position, draft_year, draft_round, draft_overall,
-                college, rookie_year, final_year, is_active, headshot_url, jersey_number
-            )
-            VALUES (
-                :player_id, :gsis_id, :pfr_id, :full_name, :first_name, :last_name,
-                :primary_position, :draft_year, :draft_round, :draft_overall,
-                :college, :rookie_year, NULL, true, :headshot_url, :jersey_number
-            )
-            ON CONFLICT (player_id) DO UPDATE SET
-                gsis_id = COALESCE(players.gsis_id, EXCLUDED.gsis_id),
-                pfr_id = COALESCE(players.pfr_id, EXCLUDED.pfr_id),
-                full_name = EXCLUDED.full_name,
-                first_name = EXCLUDED.first_name,
-                last_name = EXCLUDED.last_name,
-                primary_position = EXCLUDED.primary_position,
-                college = COALESCE(players.college, EXCLUDED.college),
-                draft_year = COALESCE(players.draft_year, EXCLUDED.draft_year),
-                draft_round = COALESCE(players.draft_round, EXCLUDED.draft_round),
-                draft_overall = COALESCE(players.draft_overall, EXCLUDED.draft_overall),
-                is_active = true,
-                final_year = NULL,
-                headshot_url = COALESCE(EXCLUDED.headshot_url, players.headshot_url),
-                jersey_number = COALESCE(EXCLUDED.jersey_number, players.jersey_number);
-        """), {
-            "player_id": p_id,
-            "gsis_id": gsis_id,
-            "pfr_id": pfr_id,
-            "full_name": full_name,
-            "first_name": first_name,
-            "last_name": last_name,
-            "primary_position": pos[:10],
-            "draft_year": draft_yr,
-            "draft_round": draft_rd,
-            "draft_overall": draft_num,
-            "college": college[:100] if college else None,
-            "rookie_year": rookie_yr,
-            "headshot_url": headshot[:255] if headshot else None,
-            "jersey_number": jersey,
-        })
-        players_synced += 1
-
-        # 2026 Team assignment stint
         if raw_team:
             franchise_id = NFLDataTransformer.resolve_franchise_id(raw_team, 2026)
-            await session.execute(text("""
-                INSERT INTO player_team_stints (
-                    player_id, franchise_id, season_year, games_played, games_started
-                )
-                VALUES (
-                    :player_id, :franchise_id, 2026, 1, 0
-                )
-                ON CONFLICT (player_id, franchise_id, season_year) DO UPDATE SET
-                    games_played = GREATEST(player_team_stints.games_played, 1);
-            """), {
+            stint2026_records.append({
                 "player_id": p_id,
                 "franchise_id": franchise_id,
             })
-            stints_synced += 1
+
+    stmt_p2026 = text("""
+        INSERT INTO players (
+            player_id, gsis_id, pfr_id, full_name, first_name, last_name,
+            primary_position, draft_year, draft_round, draft_overall,
+            college, rookie_year, final_year, is_active, headshot_url, jersey_number
+        )
+        VALUES (
+            :player_id, :gsis_id, :pfr_id, :full_name, :first_name, :last_name,
+            :primary_position, :draft_year, :draft_round, :draft_overall,
+            :college, :rookie_year, NULL, true, :headshot_url, :jersey_number
+        )
+        ON CONFLICT (player_id) DO UPDATE SET
+            gsis_id = COALESCE(players.gsis_id, EXCLUDED.gsis_id),
+            pfr_id = COALESCE(players.pfr_id, EXCLUDED.pfr_id),
+            full_name = EXCLUDED.full_name,
+            first_name = EXCLUDED.first_name,
+            last_name = EXCLUDED.last_name,
+            primary_position = EXCLUDED.primary_position,
+            college = COALESCE(players.college, EXCLUDED.college),
+            draft_year = COALESCE(players.draft_year, EXCLUDED.draft_year),
+            draft_round = COALESCE(players.draft_round, EXCLUDED.draft_round),
+            draft_overall = COALESCE(players.draft_overall, EXCLUDED.draft_overall),
+            is_active = true,
+            final_year = NULL,
+            headshot_url = COALESCE(EXCLUDED.headshot_url, players.headshot_url),
+            jersey_number = COALESCE(EXCLUDED.jersey_number, players.jersey_number);
+    """)
+    for i in range(0, len(p2026_records), 500):
+        await session.execute(stmt_p2026, p2026_records[i : i + 500])
+
+    stmt_stint2026 = text("""
+        INSERT INTO player_team_stints (
+            player_id, franchise_id, season_year, games_played, games_started
+        )
+        VALUES (
+            :player_id, :franchise_id, 2026, 1, 0
+        )
+        ON CONFLICT (player_id, franchise_id, season_year) DO UPDATE SET
+            games_played = GREATEST(player_team_stints.games_played, 1);
+    """)
+    for i in range(0, len(stint2026_records), 500):
+        await session.execute(stmt_stint2026, stint2026_records[i : i + 500])
 
     await session.commit()
+    players_synced = len(p2026_records)
+    stints_synced = len(stint2026_records)
     logger.info(f"Synced {players_synced} active players and {stints_synced} 2026 team stints.")
     return players_synced, stints_synced
 
@@ -631,7 +686,14 @@ async def recompute_career_stats(session: AsyncSession) -> int:
 
 async def run_pipeline() -> None:
     logger.info("Initializing Database Connection...")
-    engine = create_async_engine(settings.async_database_url, echo=False)
+    engine = create_async_engine(
+        settings.async_database_url,
+        echo=False,
+        connect_args={
+            "statement_cache_size": 0,
+            "prepared_statement_cache_size": 0,
+        },
+    )
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
